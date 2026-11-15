@@ -8,7 +8,7 @@ type HeaderProps = {
 export default function Header({ owner = false }: HeaderProps) {
   return (
     <header className="sticky top-0 z-30 border-b border-green-100 bg-white/90 backdrop-blur-xl">
-      <div className="container flex h-[72px] items-center justify-between gap-4">
+      <div className="container flex h-16 items-center justify-between gap-2 sm:h-[72px] sm:gap-4">
         <Brand />
         <SiteNavigation owner={owner} />
       </div>

@@ -55,7 +55,7 @@ export default function PublicRoutine({ routine, subjects, loading }: PublicRout
               <div className="divide-y divide-slate-100">
                 {items.map((item) => (
                   <div key={item.id} className="flex gap-4 px-5 py-4">
-                    <div className="w-[108px] shrink-0">
+                    <div className="w-[82px] shrink-0 sm:w-[108px]">
                       <p className="text-xs font-bold text-green-800">{item.start_time}</p>
                       <p className="mt-1 text-[11px] text-slate-400">{item.end_time}</p>
                     </div>

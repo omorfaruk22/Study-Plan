@@ -122,9 +122,9 @@ export default function TasksManager({ tasks, subjects, busy, onSave, onDelete }
         <div className="space-y-3">
           {tasks.length === 0 ? <EmptyState>কোনো কাজ যোগ করা হয়নি।</EmptyState> : tasks.map((item) => (
             <article key={item.id} className="flex items-start justify-between gap-3 rounded-xl border border-slate-100 p-3">
-              <div>
-                <p className="text-sm font-bold">{item.title}</p>
-                <p className="mt-1 text-xs text-slate-500">
+              <div className="min-w-0 flex-1">
+                <p className="break-words text-sm font-bold">{item.title}</p>
+                <p className="mt-1 break-words text-xs text-slate-500">
                   {item.task_type} · {getSubjectName(subjects, item.subject_id, item.subject_name)} · ডেডলাইন: {item.due_date || "নেই"}
                 </p>
                 <div className="mt-2 flex gap-2 text-[10px]">

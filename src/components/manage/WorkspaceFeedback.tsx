@@ -28,7 +28,7 @@ export function SuccessToast({ message, onClose }: SuccessToastProps) {
   if (!message) return null;
 
   return (
-    <div className="fixed bottom-5 right-5 z-[80] w-[min(92vw,390px)] animate-rise" role="status" aria-live="polite">
+    <div className="fixed bottom-4 right-4 z-[80] w-[calc(100vw-2rem)] max-w-[390px] animate-rise sm:bottom-5 sm:right-5" role="status" aria-live="polite">
       <div className="relative overflow-hidden rounded-2xl border border-green-100 bg-white shadow-2xl shadow-green-950/20">
         <div className="h-1.5 bg-gradient-to-r from-green-700 via-emerald-400 to-lime-300" />
         <div className="flex items-start gap-3 p-4">

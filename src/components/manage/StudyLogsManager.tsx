@@ -125,10 +125,10 @@ export default function StudyLogsManager({ logs, subjects, busy, onSave, onDelet
         <div className="space-y-3">
           {logs.length === 0 ? <EmptyState>কোনো পড়ার লগ নেই।</EmptyState> : logs.map((item) => (
             <article key={item.id} className="flex items-start justify-between gap-3 rounded-xl border border-slate-100 p-3">
-              <div>
-                <p className="text-xs font-bold text-green-700">{item.study_date} · {item.actual_minutes} মিনিট</p>
-                <p className="mt-1 text-sm font-bold">{item.topic}</p>
-                <p className="mt-1 text-xs text-slate-500">
+              <div className="min-w-0 flex-1">
+                <p className="break-words text-xs font-bold text-green-700">{item.study_date} · {item.actual_minutes} মিনিট</p>
+                <p className="mt-1 break-words text-sm font-bold">{item.topic}</p>
+                <p className="mt-1 break-words text-xs text-slate-500">
                   {getSubjectName(subjects, item.subject_id, item.subject_name)} · {item.status} · বোঝা {item.understanding ?? "—"}/5
                 </p>
                 {item.notes && <p className="mt-1 text-xs text-slate-400">{item.notes}</p>}

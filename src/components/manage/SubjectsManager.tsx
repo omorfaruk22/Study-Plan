@@ -73,9 +73,9 @@ export default function SubjectsManager({ subjects, busy, onSave, onDelete }: Su
           <div className="grid gap-2 sm:grid-cols-2">
             {subjects.map((item) => (
               <article key={item.id} className="flex items-center justify-between gap-2 rounded-xl border border-slate-100 p-3">
-                <div>
-                  <p className="text-sm font-bold">{item.name}</p>
-                  <p className="mt-1 text-[11px] text-green-700">{item.category}{item.code ? ` · ${item.code}` : ""}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="break-words text-sm font-bold">{item.name}</p>
+                  <p className="mt-1 break-words text-[11px] text-green-700">{item.category}{item.code ? ` · ${item.code}` : ""}</p>
                 </div>
                 <RecordActions onEdit={() => editItem(item)} onDelete={() => onDelete(item.id)} />
               </article>

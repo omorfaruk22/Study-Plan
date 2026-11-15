@@ -18,11 +18,11 @@ export default function WorkspaceStats({ routine, logs, tasks }: WorkspaceStatsP
   ];
 
   return (
-    <section aria-label="Study summary" className="mt-6 grid gap-3 sm:grid-cols-4">
+    <section aria-label="Study summary" className="mt-5 grid grid-cols-2 gap-2 sm:mt-6 sm:grid-cols-4 sm:gap-3">
       {stats.map((stat) => (
-        <article key={stat.label} className="card p-4">
-          <p className="text-xs text-slate-500">{stat.label}</p>
-          <b className="mt-1 block text-2xl text-green-800">{stat.value}</b>
+        <article key={stat.label} className="card min-w-0 p-3 sm:p-4">
+          <p className="text-[11px] leading-4 text-slate-500 sm:text-xs">{stat.label}</p>
+          <b className="mt-1 block break-words text-xl text-green-800 sm:text-2xl">{stat.value}</b>
         </article>
       ))}
     </section>
