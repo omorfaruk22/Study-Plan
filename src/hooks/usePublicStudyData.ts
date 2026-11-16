@@ -1,13 +1,20 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { defaultRoutine, defaultSubjects } from "@/lib/defaults";
-import type { RoutineItem, Subject } from "@/lib/types";
+import { defaultRoutine } from "@/lib/defaults";
+import type { PublicStudyStats, RoutineItem, Subject } from "@/lib/types";
 
 type PublicStudyResponse = {
   routine?: RoutineItem[];
   subjects?: Subject[];
+  studyStats?: PublicStudyStats;
   demoMode?: boolean;
+};
+
+const emptyStudyStats: PublicStudyStats = {
+  academic_minutes: 0,
+  duet_department_minutes: 0,
+  duet_non_department_minutes: 0,
 };
 
 const sampleRoutine = defaultRoutine.map((item, index) => ({
@@ -15,14 +22,10 @@ const sampleRoutine = defaultRoutine.map((item, index) => ({
   id: `sample-routine-${index}`,
 })) as RoutineItem[];
 
-const sampleSubjects = defaultSubjects.map((item, index) => ({
-  ...item,
-  id: `sample-subject-${index}`,
-})) as Subject[];
-
 export function usePublicStudyData() {
   const [routine, setRoutine] = useState<RoutineItem[]>(sampleRoutine);
-  const [subjects, setSubjects] = useState<Subject[]>(sampleSubjects);
+  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [studyStats, setStudyStats] = useState<PublicStudyStats>(emptyStudyStats);
   const [loading, setLoading] = useState(true);
   const [demoMode, setDemoMode] = useState(false);
 
@@ -38,7 +41,8 @@ export function usePublicStudyData() {
         if (!active) return;
 
         setRoutine(data.routine || sampleRoutine);
-        setSubjects(data.subjects || sampleSubjects);
+        setSubjects(data.subjects || []);
+        setStudyStats(data.studyStats || emptyStudyStats);
         setDemoMode(Boolean(data.demoMode));
       } catch {
         if (active) setDemoMode(true);
@@ -53,5 +57,5 @@ export function usePublicStudyData() {
     };
   }, []);
 
-  return { routine, subjects, loading, demoMode };
+  return { routine, subjects, studyStats, loading, demoMode };
 }
