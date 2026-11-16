@@ -163,15 +163,16 @@ export function EmptyState({ children }: { children: ReactNode }) {
 type RecordActionsProps = {
   onEdit: () => void;
   onDelete: () => void;
+  disabled?: boolean;
 };
 
-export function RecordActions({ onEdit, onDelete }: RecordActionsProps) {
+export function RecordActions({ onEdit, onDelete, disabled = false }: RecordActionsProps) {
   return (
     <div className="flex shrink-0 gap-1">
-      <button type="button" title="Edit" onClick={onEdit} className="rounded-lg p-2 text-green-700 hover:bg-green-50">
+      <button type="button" title="Edit" disabled={disabled} onClick={onEdit} className="rounded-lg p-2 text-green-700 hover:bg-green-50 disabled:cursor-not-allowed disabled:opacity-50">
         <Pencil size={15} />
       </button>
-      <button type="button" title="Delete" onClick={onDelete} className="rounded-lg p-2 text-red-500 hover:bg-red-50">
+      <button type="button" title="Delete" disabled={disabled} onClick={onDelete} className="rounded-lg p-2 text-red-500 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50">
         <Trash2 size={15} />
       </button>
     </div>
