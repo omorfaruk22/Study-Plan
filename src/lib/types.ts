@@ -41,6 +41,8 @@ export type StudyLog = {
   status: string;
   understanding?: number | null;
   notes?: string | null;
+  review_due_date?: string | null;
+  last_reviewed_date?: string | null;
 };
 
 export type StudyTask = {
@@ -67,4 +69,10 @@ export type OwnerWorkspaceData = {
   logs: StudyLog[];
   tasks: StudyTask[];
   subjects: Subject[];
+};
+
+export type StudyGoals = {
+  academic_minutes: number;
+  duet_department_minutes: number;
+  duet_non_department_minutes: number;
 };

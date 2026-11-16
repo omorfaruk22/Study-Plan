@@ -1,5 +1,6 @@
 import type { StudyLog, StudyTask, Subject } from "@/lib/types";
 import DailyStudyChart from "@/components/manage/analytics/DailyStudyChart";
+import StudyCalendar from "@/components/manage/analytics/StudyCalendar";
 import SubjectCategoryChart from "@/components/manage/analytics/SubjectCategoryChart";
 import SubjectStudyChart from "@/components/manage/analytics/SubjectStudyChart";
 import TaskStatusChart from "@/components/manage/analytics/TaskStatusChart";
@@ -20,6 +21,9 @@ export default function AnalyticsDashboard({ logs, tasks, subjects }: AnalyticsD
           পড়ার সময়, বিভাগভিত্তিক subject সংখ্যা এবং কাজের অগ্রগতি এক জায়গায় দেখো।
         </p>
       </header>
+      <div className="mb-4">
+        <StudyCalendar logs={logs} />
+      </div>
       <div className="grid gap-4 lg:grid-cols-2">
         <DailyStudyChart logs={logs} />
         <SubjectStudyChart logs={logs} subjects={subjects} />

@@ -7,6 +7,9 @@ import Header from "@/components/Header";
 import AcademicManager from "@/components/manage/AcademicManager";
 import AnalyticsDashboard from "@/components/manage/analytics/AnalyticsDashboard";
 import DeleteConfirmDialog from "@/components/manage/DeleteConfirmDialog";
+import DailyGoalsPanel from "@/components/manage/DailyGoalsPanel";
+import DataBackupTools from "@/components/manage/DataBackupTools";
+import ReviewReminderPanel from "@/components/manage/ReviewReminderPanel";
 import DuetManager from "@/components/manage/DuetManager";
 import RoutineManager from "@/components/manage/RoutineManager";
 import TasksManager from "@/components/manage/TasksManager";
@@ -140,7 +143,17 @@ export default function ManageWorkspace({ activeTab }: ManageWorkspaceProps) {
       {pendingDelete && <DeleteConfirmDialog itemName={pendingDelete.itemName} busy={busy} onCancel={() => setPendingDelete(null)} onConfirm={() => void confirmDelete()} />}
       <main className="container pb-12 pt-6 sm:pb-16 sm:pt-8">
         <WorkspaceHeader />
+        <DataBackupTools onRestored={load} />
         <WorkspaceStats routine={workspace.routine} logs={workspace.logs} tasks={workspace.tasks} />
+        <DailyGoalsPanel logs={workspace.logs} />
+        <ReviewReminderPanel
+          logs={workspace.logs}
+          busy={busy}
+          onReviewed={(log, today, nextReview) => {
+            const { id, ...data } = log;
+            return saveRecord("study_logs", { ...data, last_reviewed_date: today, review_due_date: nextReview }, id, "আবার পড়ার হিসাব হয়েছে; ৩ দিন পরে আবার মনে করাবো।");
+          }}
+        />
         <WorkspaceTabs activeTab={activeTab} onRefresh={() => void refresh()} />
         <WorkspaceFeedback error={error} />
 

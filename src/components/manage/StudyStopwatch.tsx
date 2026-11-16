@@ -3,14 +3,15 @@
 import { useEffect, useState } from "react";
 import { CirclePlay, Pause, Play, Timer, Save } from "lucide-react";
 import type { StudyLogInput, StudyTrack } from "@/lib/types";
+import {
+  elapsedAt,
+  parseStopwatchSession,
+  publishStopwatchSession,
+  studyStopwatchStorageKey,
+  studyStopwatchSyncEvent,
+  type StopwatchSession,
+} from "@/lib/study-stopwatch";
 
-const storageKey = "faruk-study-manager:active-study-stopwatch:v1";
-
-type StopwatchSession = {
-  entry: StudyLogInput;
-  elapsedMs: number;
-  startedAt: number | null;
-};
 
 type StudyStopwatchProps = {
   entry: StudyLogInput;
@@ -20,30 +21,16 @@ type StudyStopwatchProps = {
   onSessionChange: (track: StudyTrack | null) => void;
 };
 
-function parseSession(raw: string | null): StopwatchSession | null {
-  if (!raw) return null;
-  try {
-    const value = JSON.parse(raw) as Partial<StopwatchSession>;
-    const entry = value.entry as Partial<StudyLogInput> | undefined;
-    const validTrack = entry?.study_track === "academic" || entry?.study_track === "duet_department" || entry?.study_track === "duet_non_department";
-    if (
-      !entry || !validTrack || typeof entry.topic !== "string" ||
-      typeof value.elapsedMs !== "number" || !Number.isFinite(value.elapsedMs) || value.elapsedMs < 0 ||
-      (value.startedAt !== null && typeof value.startedAt !== "number")
-    ) return null;
-    return value as StopwatchSession;
-  } catch {
-    return null;
-  }
-}
-
-function elapsedAt(session: StopwatchSession, now: number) {
-  return session.elapsedMs + (session.startedAt === null ? 0 : Math.max(0, now - session.startedAt));
-}
 
 function localDateAt(timestamp: number) {
   const date = new Date(timestamp);
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
+function addDaysToDateKey(value: string, days: number) {
+  const [year, month, day] = value.split("-").map(Number);
+  const date = new Date(year, month - 1, day + days, 12);
+  return [date.getFullYear(), String(date.getMonth() + 1).padStart(2, "0"), String(date.getDate()).padStart(2, "0")].join("-");
 }
 
 function formatElapsed(milliseconds: number) {
@@ -69,9 +56,9 @@ export default function StudyStopwatch({ entry, canStart, busy, onFinish, onSess
   useEffect(() => {
     let restored: StopwatchSession | null = null;
     try {
-      const raw = window.localStorage.getItem(storageKey);
-      restored = parseSession(raw);
-      if (!restored && raw) window.localStorage.removeItem(storageKey);
+      const raw = window.localStorage.getItem(studyStopwatchStorageKey);
+      restored = parseStopwatchSession(raw);
+      if (!restored && raw) window.localStorage.removeItem(studyStopwatchStorageKey);
     } catch {
       setStorageError("Browser storage পাওয়া যাচ্ছে না; timer এই পেজে চলবে, কিন্তু page বদলালে ধরে রাখা নাও যেতে পারে।");
     }
@@ -87,22 +74,32 @@ export default function StudyStopwatch({ entry, canStart, busy, onFinish, onSess
     return () => window.clearInterval(intervalId);
   }, [session]);
 
+
   useEffect(() => {
     function syncFromAnotherTab(event: StorageEvent) {
-      if (event.key !== storageKey) return;
-      const nextSession = parseSession(event.newValue);
+      if (event.key !== studyStopwatchStorageKey) return;
+      const nextSession = parseStopwatchSession(event.newValue);
+      setSession(nextSession);
+      onSessionChange(nextSession?.entry.study_track || null);
+    }
+    function syncFromSameTab(event: Event) {
+      const nextSession = (event as CustomEvent<StopwatchSession | null>).detail;
       setSession(nextSession);
       onSessionChange(nextSession?.entry.study_track || null);
     }
     window.addEventListener("storage", syncFromAnotherTab);
-    return () => window.removeEventListener("storage", syncFromAnotherTab);
+    window.addEventListener(studyStopwatchSyncEvent, syncFromSameTab);
+    return () => {
+      window.removeEventListener("storage", syncFromAnotherTab);
+      window.removeEventListener(studyStopwatchSyncEvent, syncFromSameTab);
+    };
   }, [onSessionChange]);
 
   function persist(nextSession: StopwatchSession | null) {
     let stored = true;
     try {
-      if (nextSession) window.localStorage.setItem(storageKey, JSON.stringify(nextSession));
-      else window.localStorage.removeItem(storageKey);
+      if (nextSession) window.localStorage.setItem(studyStopwatchStorageKey, JSON.stringify(nextSession));
+      else window.localStorage.removeItem(studyStopwatchStorageKey);
       setStorageError("");
     } catch {
       stored = false;
@@ -110,6 +107,7 @@ export default function StudyStopwatch({ entry, canStart, busy, onFinish, onSess
     }
     setSession(nextSession);
     onSessionChange(nextSession?.entry.study_track || null);
+    publishStopwatchSession(nextSession);
     return stored;
   }
 
@@ -136,9 +134,11 @@ export default function StudyStopwatch({ entry, canStart, busy, onFinish, onSess
 
   async function finishSession() {
     if (!session || busy || saving) return;
-    const stopped = { ...session, elapsedMs: elapsedAt(session, Date.now()), startedAt: null };
+    const finishedAt = Date.now();
+    const finishedDate = localDateAt(finishedAt);
+    const stopped = { ...session, elapsedMs: elapsedAt(session, finishedAt), startedAt: null };
     persist(stopped);
-    setNow(Date.now());
+    setNow(finishedAt);
     setSaving(true);
     try {
       const actualMinutes = Math.max(1, Math.round(stopped.elapsedMs / 60_000));
@@ -146,6 +146,8 @@ export default function StudyStopwatch({ entry, canStart, busy, onFinish, onSess
         ...stopped.entry,
         actual_minutes: actualMinutes,
         status: "সম্পন্ন",
+        review_due_date: addDaysToDateKey(finishedDate, 3),
+        last_reviewed_date: null,
       });
       if (saved) persist(null);
     } finally {

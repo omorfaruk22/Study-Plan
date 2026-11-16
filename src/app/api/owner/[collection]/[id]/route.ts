@@ -15,7 +15,7 @@ function isSameOrigin(request: NextRequest) {
 
 const fields: Record<string, string[]> = {
   weekly_routine: ["day", "start_time", "end_time", "title", "subject_id", "subject_name", "category", "notes", "sort_order"],
-  study_logs: ["study_date", "subject_id", "subject_name", "study_track", "topic", "planned_minutes", "actual_minutes", "status", "understanding", "notes"],
+  study_logs: ["study_date", "subject_id", "subject_name", "study_track", "topic", "planned_minutes", "actual_minutes", "status", "understanding", "notes", "review_due_date", "last_reviewed_date"],
   study_tasks: ["title", "subject_id", "subject_name", "task_type", "due_date", "priority", "status", "notes"],
   subjects: ["name", "category", "code", "color"]
 };
