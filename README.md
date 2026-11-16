@@ -2,13 +2,44 @@
 
 A Next.js + TypeScript personal study management app backed by **MongoDB Atlas**.
 
-## Features
-- Public visitor page: can view the published weekly routine and subject list only.
-- Owner login: Google OAuth restricted to `omorfaruk22571@gmail.com`.
-- Owner workspace: add, edit and delete routine items, subjects, daily study logs, assignments and exams.
-- Private data: daily logs, personal notes and tasks are not exposed through public APIs.
-- Server-side authorization: every write API checks the Auth.js session and exact owner email. The MongoDB URI and credentials stay on the server.
-- Starter subjects and weekly schedule are inserted automatically the first time the owner opens the management panel.
+## ✨ Feature Highlights
+
+### Public home
+- **Live digital and analog clocks** show the device's local time and timezone/location label.
+- **Public weekly routine** includes Today, All days, and weekday filters, plus the current/next routine view.
+- **Public study overview** shows aggregate hours for Academic, DUET Department, and DUET Non-Department.
+- **Public subject list** and study-focus cards are available without owner login.
+- **12-hour time display**, black-and-green visual theme, responsive mobile layout, and soft management-page transitions.
+
+### Owner-only Study Management
+- **Google Owner Login** protects management pages and APIs using the configured owner email.
+- **Weekly routine manager** supports adding, editing, and deleting schedule items, with a live current-routine panel.
+- **Separate Academic and DUET sections** let the owner manage subjects and study logs; DUET is split into Department and Non-Department.
+- **Assignments and exam manager** tracks due dates, priorities, statuses, subjects, and notes.
+- **Automatic stopwatch logging:** enter the subject/topic, start studying, then finish the timer to save elapsed minutes and date automatically. Pause and resume are supported; the session survives management-page switches in the same browser.
+- **15-minute idle warning** asks whether to keep studying or pause and exclude time since the last activity.
+- **Three-day review reminders:** each completed stopwatch session appears for review three days later. Marking it reviewed schedules the next reminder three days after that.
+- **Daily goals** can be set separately for Academic, DUET Department, and DUET Non-Department, with today's progress shown against each goal.
+
+### Analytics and data safety
+- **Study calendar** lets the owner move between months and select a day to see its study sessions and total time.
+- **Historical study graph** supports the last 7 days, 30 days, 1 year, all history, or a custom date range; it groups data by day, week, or month as appropriate.
+- **Subject and category insights** compare study time, session counts, and subject totals.
+- **Task status chart** summarizes assignment and exam progress.
+- **JSON backup and merge restore** cover routines, subjects, study logs, tasks, and daily goals. Restore updates matching record IDs and keeps records that are not in the backup.
+- **Excel-compatible CSV export** downloads study logs for spreadsheets.
+- **Private study details**—individual logs, notes, tasks, and goals—are not exposed through public APIs; the public page only receives published routine/subjects and aggregate study totals.
+
+### Management pages
+| Route | What it contains |
+|---|---|
+| / | Public home, live clocks, study totals, routine, and subjects |
+| /login | Google owner sign-in |
+| /manage | Weekly routine and current routine view |
+| /manage/academic | Academic subjects and study logs |
+| /manage/duet | DUET Department and Non-Department subjects and study logs |
+| /manage/tasks | Assignments and exams |
+| /manage/analytics | Study calendar, history graph, subject/category and task charts |
 
 ## Technology
 - Next.js App Router + TypeScript
@@ -35,7 +66,7 @@ A Next.js + TypeScript personal study management app backed by **MongoDB Atlas**
 Google OAuth consent/testing settings must allow the owner Google account to sign in. The app itself additionally rejects any account other than the verified owner email configured below.
 
 ## 3. Configure environment variables
-Copy `.env.example` to `.env.local` and fill in:
+Create **.env.local** in the project root and add the following values:
 
 ```env
 MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/?retryWrites=true&w=majority
@@ -67,7 +98,7 @@ Open `http://localhost:3000`.
 - `/login` starts Google Owner Login.
 - `/manage` is protected and redirects non-owners to `/login`.
 
-The first successful owner visit to `/manage` seeds the initial college subjects, DUET subjects, Web Development subjects and weekly routine if those collections are empty.
+The first successful owner visit to /manage seeds the starter weekly routine only when the routine collection is empty. Add your own Academic and DUET subjects from their management pages.
 
 ## 5. Deploy to Vercel
 1. Push the project to a private GitHub repository (recommended, because project configuration and personal study app details are included).
@@ -83,7 +114,9 @@ The first successful owner visit to `/manage` seeds the initial college subjects
 |---|---:|---:|
 | Published weekly routine | View | View / Add / Edit / Delete |
 | Public subject list | View | View / Add / Edit / Delete |
-| Daily study logs and notes | No access | Full access |
+| Aggregate study-time totals by track | View | View / Manage |
+| Individual study logs, notes, and review reminders | No access | Full access |
+| Daily goals | No access | View / Configure |
 | Assignments and exam tasks | No access | Full access |
 | Management APIs | No access | Authorized access |
 
