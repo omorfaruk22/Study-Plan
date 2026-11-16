@@ -83,7 +83,7 @@ export default function StudyLogsManager({ logs, subjects, studyTrack, busy, onS
 
   return (
     <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(300px,.8fr)_minmax(0,1.2fr)]">
-      <section className="card p-5">
+      <section className="card p-3.5 sm:p-5">
         <h2 className="mb-4 font-extrabold text-green-950">{editingId ? "পড়ার হিসাব সম্পাদনা" : `${trackLabel} পড়া যোগ করো`}</h2>
         <StudyStopwatch
           entry={stopwatchEntry}
@@ -155,7 +155,7 @@ export default function StudyLogsManager({ logs, subjects, studyTrack, busy, onS
         </form>
       </section>
 
-      <section className="card p-5">
+      <section className="card p-3.5 sm:p-5">
         <h2 className="mb-4 font-extrabold text-green-950">{trackLabel} পড়ার হিসাব ({logs.length})</h2>
         <div className="space-y-3">
           {logs.length === 0 ? <EmptyState>এখনো কোনো পড়ার হিসাব যোগ করা হয়নি।</EmptyState> : logs.map((item) => (

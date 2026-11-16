@@ -59,13 +59,13 @@ export default function StudyCalendar({ logs }: { logs: StudyLog[] }) {
   }
 
   return (
-    <section className="card p-4 sm:p-5">
-      <div className="flex items-center justify-between gap-3">
+    <section className="card p-3.5 sm:p-5">
+      <div className="flex flex-col gap-3 min-[460px]:flex-row min-[460px]:items-center min-[460px]:justify-between">
         <div>
           <p className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-[.14em] text-green-700"><CalendarDays size={15} /> Study calendar</p>
           <h2 className="mt-1 text-lg font-black text-green-950">দিনভিত্তিক পড়ার হিসাব</h2>
         </div>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center justify-center gap-1.5">
           <button type="button" onClick={() => navigate(-1)} aria-label="আগের মাস" className="btn btn-plain h-9 w-9 p-0"><ArrowLeft size={16} /></button>
           <span className="min-w-[112px] text-center text-sm font-extrabold text-green-950">{formatMonth(month)}</span>
           <button type="button" onClick={() => navigate(1)} aria-label="পরের মাস" className="btn btn-plain h-9 w-9 p-0"><ArrowRight size={16} /></button>
@@ -87,7 +87,7 @@ export default function StudyCalendar({ logs }: { logs: StudyLog[] }) {
               aria-pressed={isSelected}
               aria-label={`${key}: ${data ? durationLabel(data.minutes) : "পড়ার log নেই"}`}
               onClick={() => { setSelected(key); if (!inside) setMonth(new Date(date.getFullYear(), date.getMonth(), 1, 12)); }}
-              className={`flex min-h-[58px] flex-col items-center justify-center rounded-xl border p-1 transition sm:min-h-[70px] ${tone} ${inside ? "" : "opacity-45"} ${current ? "ring-2 ring-green-500 ring-offset-1" : "border-transparent"} ${isSelected ? "!border-green-900 !ring-2 !ring-lime-400" : ""}`}
+            className={`flex min-h-[44px] flex-col items-center justify-center rounded-lg border p-0.5 transition sm:min-h-[70px] sm:rounded-xl sm:p-1 ${tone} ${inside ? "" : "opacity-45"} ${current ? "ring-2 ring-green-500 ring-offset-1" : "border-transparent"} ${isSelected ? "!border-green-900 !ring-2 !ring-lime-400" : ""}`}
             >
               <span className="text-xs font-extrabold sm:text-sm">{date.getDate().toLocaleString("bn-BD")}</span>
               {data && <span className="mt-0.5 text-[9px] font-bold leading-3 sm:text-[10px]">{data.count} log</span>}

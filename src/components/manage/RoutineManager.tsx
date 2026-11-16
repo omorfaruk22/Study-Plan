@@ -115,7 +115,7 @@ export default function RoutineManager({ routine, subjects, busy, onSave, onDele
   return (
     <div className="mt-5 space-y-5">
       <div className="grid items-start gap-5 lg:grid-cols-2">
-        <section className="card relative overflow-visible p-4 sm:p-5">
+        <section className="card relative overflow-visible p-3.5 sm:p-5">
           <div className="absolute inset-x-5 top-0 h-1 rounded-b-full bg-gradient-to-r from-green-500 via-lime-400 to-emerald-500" />
           <div className="mb-4 flex items-start justify-between gap-3">
             <div>
@@ -130,7 +130,7 @@ export default function RoutineManager({ routine, subjects, busy, onSave, onDele
             )}
           </div>
 
-          <form onSubmit={handleSubmit} className="grid gap-3 sm:grid-cols-2">
+          <form onSubmit={handleSubmit} className="grid gap-3 min-[380px]:grid-cols-2">
             <FormField label="বার">
               <select className="field" value={form.day} onChange={(event) => setForm({ ...form, day: event.target.value })}>
                 {days.map((day) => <option key={day}>{day}</option>)}
@@ -147,7 +147,7 @@ export default function RoutineManager({ routine, subjects, busy, onSave, onDele
             <FormField label="শেষের সময়">
               <TimeInput value={form.end_time} onChange={(value) => setForm({ ...form, end_time: value })} />
             </FormField>
-            <FormField label="কাজ / পড়ার নাম" className="sm:col-span-2">
+            <FormField label="কাজ / পড়ার নাম" className="min-[380px]:col-span-2">
               <input required className="field" value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} placeholder="যেমন: Database Management পড়া" />
             </FormField>
             <FormField label="বিষয় (ঐচ্ছিক)">
@@ -162,10 +162,10 @@ export default function RoutineManager({ routine, subjects, busy, onSave, onDele
             <FormField label="ক্রম">
               <input type="number" className="field" value={form.sort_order} onChange={(event) => setForm({ ...form, sort_order: Number(event.target.value) })} />
             </FormField>
-            <FormField label="বিস্তারিত / নোট" className="sm:col-span-2">
+            <FormField label="বিস্তারিত / নোট" className="min-[380px]:col-span-2">
               <textarea className="field min-h-20" value={form.notes || ""} onChange={(event) => setForm({ ...form, notes: event.target.value })} placeholder="এই সময়ের জন্য ছোট কোনো নোট..." />
             </FormField>
-            <button disabled={busy} className="btn btn-primary sm:col-span-2">
+            <button disabled={busy} className="btn btn-primary min-[380px]:col-span-2">
               <Save size={16} /> {busy ? "সংরক্ষণ হচ্ছে..." : editingId ? "আপডেট করো" : "রুটিন যোগ করো"}
             </button>
           </form>
@@ -188,7 +188,7 @@ export default function RoutineManager({ routine, subjects, busy, onSave, onDele
           </span>
         </div>
 
-        <div className="mt-4 flex gap-2 overflow-x-auto pb-1" role="group" aria-label="রুটিনের দিন বেছে নিন">
+        <div className="mobile-tab-scroll mt-4 flex gap-2 overflow-x-auto pb-1" role="group" aria-label="রুটিনের দিন বেছে নিন">
           {filters.map(({ id, label }) => (
             <button
               key={id}

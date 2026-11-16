@@ -1,8 +1,9 @@
 "use client";
 
 import { useRef, useState, type ChangeEvent } from "react";
-import { ArchiveRestore, Download, ShieldAlert, Upload } from "lucide-react";
+import { ArchiveRestore, ChevronDown, Download, ShieldAlert, Upload } from "lucide-react";
 import { requestApi } from "@/lib/owner-api";
+import useResponsiveDisclosure from "@/components/manage/useResponsiveDisclosure";
 
 type BackupFile = {
   format: string;
@@ -23,6 +24,7 @@ function dateSuffix() {
 }
 
 export default function DataBackupTools({ onRestored }: DataBackupToolsProps) {
+  const [open, setOpen] = useResponsiveDisclosure();
   const fileInput = useRef<HTMLInputElement>(null);
   const [candidate, setCandidate] = useState<{ file: string; data: BackupFile } | null>(null);
   const [busy, setBusy] = useState(false);
@@ -123,7 +125,18 @@ export default function DataBackupTools({ onRestored }: DataBackupToolsProps) {
   }
 
   return (
-    <section className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-green-900 bg-[#0c1710] p-3.5 text-green-50 sm:px-4">
+    <details open={open} onToggle={(event) => setOpen(event.currentTarget.open)} className="mobile-disclosure mt-3 rounded-2xl border border-green-900 bg-[#0c1710] p-3.5 text-green-50 sm:mt-4 sm:px-4">
+      <summary className="sm:hidden">
+        <span className="flex min-w-0 items-center gap-2.5">
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-green-400/10 text-green-300"><ArchiveRestore size={18} /></span>
+          <span className="min-w-0">
+            <span className="block text-sm font-extrabold">Data backup</span>
+            <span className="block text-[10px] text-green-100/65">JSON · CSV · Restore</span>
+          </span>
+        </span>
+        <ChevronDown size={18} className="shrink-0 text-green-300" />
+      </summary>
+      <div className="mobile-disclosure-content mobile-disclosure-flex flex-wrap items-center justify-between gap-3">
       <div className="flex min-w-0 items-center gap-2.5">
         <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-green-400/10 text-green-300"><ArchiveRestore size={18} /></span>
         <div className="min-w-0">
@@ -165,6 +178,7 @@ export default function DataBackupTools({ onRestored }: DataBackupToolsProps) {
           </section>
         </div>
       )}
-    </section>
+      </div>
+    </details>
   );
 }

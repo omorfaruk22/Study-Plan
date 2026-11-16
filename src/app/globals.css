@@ -21,6 +21,23 @@ button { cursor:pointer; }
 .manage-section-enter { animation:manage-section-enter .24s ease-out both; }
 @media (prefers-reduced-motion: reduce) { .manage-section-enter { animation:none; } }
 
+/* Native disclosures keep the mobile manager compact while leaving desktop panels open. */
+.mobile-disclosure > summary { display:flex; align-items:center; justify-content:space-between; gap:12px; cursor:pointer; list-style:none; }
+.mobile-disclosure > summary::-webkit-details-marker { display:none; }
+.mobile-disclosure[open] > summary svg:last-child { transform:rotate(180deg); }
+.mobile-tab-scroll { scrollbar-width:none; -webkit-overflow-scrolling:touch; scroll-snap-type:x proximity; }
+.mobile-tab-scroll::-webkit-scrollbar { display:none; }
+.mobile-tab-scroll > * { scroll-snap-align:start; }
+@media (max-width: 639px) {
+  .container { width:calc(100% - 24px); }
+}
+@media (min-width: 640px) {
+  .mobile-disclosure > summary { display:none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mobile-tab-scroll { scroll-behavior:auto; }
+}
+
 /* Dark green application theme */
 .theme-dark-green {
   color-scheme: dark;

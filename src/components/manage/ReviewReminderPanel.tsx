@@ -1,8 +1,9 @@
 "use client";
 
-import { BookOpenCheck, CalendarClock, Check } from "lucide-react";
+import { BookOpenCheck, CalendarClock, Check, ChevronDown } from "lucide-react";
 import type { StudyLog } from "@/lib/types";
 import { localDateKey } from "@/components/manage/analytics/chart-utils";
+import useResponsiveDisclosure from "@/components/manage/useResponsiveDisclosure";
 
 function dayDifference(from: string, to: string) {
   const first = new Date(`${from}T12:00:00`).getTime();
@@ -30,6 +31,7 @@ type ReviewReminderPanelProps = {
 };
 
 export default function ReviewReminderPanel({ logs, busy, onReviewed }: ReviewReminderPanelProps) {
+  const [open, setOpen] = useResponsiveDisclosure();
   const today = localDateKey(new Date());
   const reminders = logs
     .filter((log) => Boolean(log.review_due_date) && dayDifference(today, log.review_due_date || "") <= 7)
@@ -37,7 +39,15 @@ export default function ReviewReminderPanel({ logs, busy, onReviewed }: ReviewRe
   const dueCount = reminders.filter((log) => dayDifference(today, log.review_due_date || "") <= 0).length;
 
   return (
-    <section className="card mt-4 overflow-hidden p-4 sm:p-5">
+    <details open={open} onToggle={(event) => setOpen(event.currentTarget.open)} className="mobile-disclosure card mt-3 overflow-hidden p-3.5 sm:mt-4 sm:p-5">
+      <summary className="sm:hidden">
+        <span className="min-w-0">
+          <span className="flex items-center gap-2 text-[10px] font-extrabold uppercase tracking-[.12em] text-green-700"><CalendarClock size={14} /> Review reminders</span>
+          <span className="mt-1 block text-sm font-black text-green-950">আবার পড়ার সময় <span className="font-semibold text-slate-500">· {dueCount}টি বাকি</span></span>
+        </span>
+        <ChevronDown size={18} className="shrink-0 text-green-600" />
+      </summary>
+      <div className="mobile-disclosure-content">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <p className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-[.14em] text-green-700"><CalendarClock size={15} /> Review reminders · ৩ দিনের cycle</p>
@@ -71,6 +81,7 @@ export default function ReviewReminderPanel({ logs, busy, onReviewed }: ReviewRe
       )}
       {reminders.length > 6 && <p className="mt-2 text-right text-[11px] text-slate-500">আরও {reminders.length - 6}টি reminder আছে।</p>}
       <p className="mt-2 text-[10px] text-slate-400">“আবার পড়েছি” চাপলে পরের reminder ৩ দিন পরে আসবে।</p>
-    </section>
+      </div>
+    </details>
   );
 }

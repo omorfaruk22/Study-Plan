@@ -38,7 +38,7 @@ export default function SubjectsManager({ subjects, category, busy, onSave, onDe
 
   return (
     <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(280px,.7fr)_minmax(0,1.3fr)]">
-      <section className="card p-5">
+      <section className="card p-3.5 sm:p-5">
         <div className="mb-4 flex items-center justify-between gap-3">
           <h2 className="font-extrabold text-green-950">{editingId ? "বিষয় সম্পাদনা" : "নিজের বিষয় যোগ করো"}</h2>
           <span className="rounded-full bg-green-50 px-2.5 py-1 text-[11px] font-bold text-green-800">{category}</span>
@@ -59,7 +59,7 @@ export default function SubjectsManager({ subjects, category, busy, onSave, onDe
         </form>
       </section>
 
-      <section className="card p-5">
+      <section className="card p-3.5 sm:p-5">
         <h2 className="mb-4 font-extrabold text-green-950">{category} বিষয় ({subjects.length})</h2>
         {subjects.length === 0 ? <EmptyState>এখনো কোনো বিষয় যোগ করা হয়নি। বাম পাশের ফর্ম থেকে নিজের বিষয় যোগ করো।</EmptyState> : (
           <div className="grid gap-2 sm:grid-cols-2">

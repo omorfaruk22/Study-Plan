@@ -85,7 +85,7 @@ export default function PublicRoutine({ routine, subjects, loading }: PublicRout
       </div>
 
       <div className="card p-3.5 sm:p-4">
-        <div className="flex gap-2 overflow-x-auto pb-1" role="group" aria-label="রুটিনের দিন বেছে নিন">
+        <div className="mobile-tab-scroll flex gap-2 overflow-x-auto pb-1" role="group" aria-label="রুটিনের দিন বেছে নিন">
           {filters.map(({ id, label }) => (
             <button
               key={id}

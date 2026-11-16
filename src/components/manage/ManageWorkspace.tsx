@@ -174,7 +174,7 @@ export default function ManageWorkspace({ activeTab }: ManageWorkspaceProps) {
       <Header owner />
       <SuccessToast message={message} onClose={closeSuccessToast} />
       {pendingDelete && <DeleteConfirmDialog itemName={pendingDelete.itemName} busy={busy} onCancel={() => setPendingDelete(null)} onConfirm={() => void confirmDelete()} />}
-      <main className="container pb-12 pt-6 sm:pb-16 sm:pt-8">
+      <main className="container pb-12 pt-4 sm:pb-16 sm:pt-8">
         <WorkspaceHeader />
         <DataBackupTools onRestored={load} />
         <WorkspaceStats routine={workspace.routine} logs={workspace.logs} tasks={workspace.tasks} />

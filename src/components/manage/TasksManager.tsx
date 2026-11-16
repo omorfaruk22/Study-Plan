@@ -68,7 +68,7 @@ export default function TasksManager({ tasks, subjects, busy, onSave, onDelete }
 
   return (
     <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(300px,.8fr)_minmax(0,1.2fr)]">
-      <section className="card p-5">
+      <section className="card p-3.5 sm:p-5">
         <h2 className="mb-4 font-extrabold text-green-950">{editingId ? "কাজ সম্পাদনা" : "নতুন Assignment / পরীক্ষা"}</h2>
         <form onSubmit={handleSubmit} className="grid gap-3">
           <FormField label="কাজের নাম">
@@ -117,7 +117,7 @@ export default function TasksManager({ tasks, subjects, busy, onSave, onDelete }
         </form>
       </section>
 
-      <section className="card p-5">
+      <section className="card p-3.5 sm:p-5">
         <h2 className="mb-4 font-extrabold text-green-950">Assignment ও পরীক্ষা</h2>
         <div className="space-y-3">
           {tasks.length === 0 ? <EmptyState>কোনো কাজ যোগ করা হয়নি।</EmptyState> : tasks.map((item) => (

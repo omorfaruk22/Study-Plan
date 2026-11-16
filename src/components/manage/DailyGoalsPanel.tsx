@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Check, Target } from "lucide-react";
+import { Check, ChevronDown, Target } from "lucide-react";
 import type { StudyGoals, StudyLog, StudyTrack } from "@/lib/types";
 import { requestApi } from "@/lib/owner-api";
 import { localDateKey } from "@/components/manage/analytics/chart-utils";
+import useResponsiveDisclosure from "@/components/manage/useResponsiveDisclosure";
 
 const defaults: StudyGoals = { academic_minutes: 0, duet_department_minutes: 0, duet_non_department_minutes: 0 };
 const tracks: { key: keyof StudyGoals; id: StudyTrack; label: string; tone: string }[] = [
@@ -24,6 +25,7 @@ function durationLabel(minutes: number) {
 }
 
 export default function DailyGoalsPanel({ logs }: { logs: StudyLog[] }) {
+  const [open, setOpen] = useResponsiveDisclosure();
   const [goals, setGoals] = useState<StudyGoals>(defaults);
   const [hours, setHours] = useState<Record<keyof StudyGoals, string>>({ academic_minutes: "", duet_department_minutes: "", duet_non_department_minutes: "" });
   const [ready, setReady] = useState(false);
@@ -97,7 +99,15 @@ export default function DailyGoalsPanel({ logs }: { logs: StudyLog[] }) {
   }
 
   return (
-    <section className="card mt-4 overflow-hidden p-4 sm:p-5">
+    <details open={open} onToggle={(event) => setOpen(event.currentTarget.open)} className="mobile-disclosure card mt-3 overflow-hidden p-3.5 sm:mt-4 sm:p-5">
+      <summary className="sm:hidden">
+        <span className="min-w-0">
+          <span className="flex items-center gap-2 text-[10px] font-extrabold uppercase tracking-[.12em] text-green-700"><Target size={14} /> Daily focus · 3 track</span>
+          <span className="mt-1 block text-sm font-black text-green-950">আজকের লক্ষ্য ও অগ্রগতি</span>
+        </span>
+        <ChevronDown size={18} className="shrink-0 text-green-600 transition-transform group-open:rotate-180" />
+      </summary>
+      <div className="mobile-disclosure-content">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-[.14em] text-green-700"><Target size={15} /> Daily focus</p>
@@ -109,13 +119,13 @@ export default function DailyGoalsPanel({ logs }: { logs: StudyLog[] }) {
         </button>
       </div>
 
-      <div className="mt-4 grid gap-3 md:grid-cols-3">
+      <div className="mt-3 grid gap-2.5 sm:mt-4 sm:gap-3 md:grid-cols-3">
         {tracks.map((track) => {
           const actual = totals[track.id];
           const goal = goals[track.key];
           const progress = goal > 0 ? Math.min(100, actual / goal * 100) : 0;
           return (
-            <article key={track.key} className="rounded-2xl border border-green-100 bg-green-50/50 p-3.5">
+            <article key={track.key} className="rounded-2xl border border-green-100 bg-green-50/50 p-3 sm:p-3.5">
               <div className="flex items-center justify-between gap-2">
                 <p className="text-xs font-extrabold text-green-950">{track.label}</p>
                 <p className="whitespace-nowrap text-[11px] font-bold text-slate-500">{durationLabel(actual)}{goal > 0 ? ` / ${durationLabel(goal)}` : " · লক্ষ্য নেই"}</p>
@@ -136,6 +146,7 @@ export default function DailyGoalsPanel({ logs }: { logs: StudyLog[] }) {
       </div>
       {message && <p role="status" className="mt-3 text-xs font-semibold text-green-700">{message}</p>}
       {error && <p role="alert" className="mt-3 text-xs font-semibold text-red-600">{error}</p>}
-    </section>
+      </div>
+    </details>
   );
 }
