@@ -41,6 +41,11 @@ function elapsedAt(session: StopwatchSession, now: number) {
   return session.elapsedMs + (session.startedAt === null ? 0 : Math.max(0, now - session.startedAt));
 }
 
+function localDateAt(timestamp: number) {
+  const date = new Date(timestamp);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
 function formatElapsed(milliseconds: number) {
   const seconds = Math.floor(milliseconds / 1_000);
   const hours = Math.floor(seconds / 3_600);
@@ -110,8 +115,9 @@ export default function StudyStopwatch({ entry, canStart, busy, onFinish, onSess
 
   function startSession() {
     if (!canStart || session || !storageReady || busy || saving) return;
-    persist({ entry, elapsedMs: 0, startedAt: Date.now() });
-    setNow(Date.now());
+    const startedAt = Date.now();
+    persist({ entry: { ...entry, study_date: localDateAt(startedAt) }, elapsedMs: 0, startedAt });
+    setNow(startedAt);
   }
 
   function pauseSession() {

@@ -53,7 +53,7 @@ export default function StudyLogsManager({ logs, subjects, studyTrack, busy, onS
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (activeTimerTrack) return;
+    if (!editingId || activeTimerTrack) return;
     const subjectName = getSubjectInputValue(subjects, form.subject_id, form.subject_name);
     const saveData: StudyLogInput = {
       ...form,
@@ -98,9 +98,15 @@ export default function StudyLogsManager({ logs, subjects, studyTrack, busy, onS
         />
         <form onSubmit={handleSubmit}>
           <fieldset disabled={Boolean(activeTimerTrack)} className="grid min-w-0 gap-3 border-0 p-0 disabled:opacity-60">
-          <FormField label="তারিখ">
-            <input type="date" className="field" value={form.study_date} onChange={(event) => setForm({ ...form, study_date: event.target.value })} />
-          </FormField>
+          {editingId ? (
+            <FormField label="তারিখ">
+              <input type="date" className="field" value={form.study_date} onChange={(event) => setForm({ ...form, study_date: event.target.value })} />
+            </FormField>
+          ) : (
+            <FormField label="তারিখ (স্বয়ংক্রিয়)">
+              <p className="field flex items-center text-slate-500">Stopwatch শুরু হলে আজকের তারিখ নিজে থেকেই সেভ হবে</p>
+            </FormField>
+          )}
           <FormField label="বিষয়">
             <SubjectField
               subjects={subjects}
@@ -113,20 +119,17 @@ export default function StudyLogsManager({ logs, subjects, studyTrack, busy, onS
           <FormField label="আজ কী পড়লে?">
             <input required className="field" value={form.topic} onChange={(event) => setForm({ ...form, topic: event.target.value })} placeholder="পড়া বা টপিকের নাম" />
           </FormField>
-          <div className="grid grid-cols-2 gap-3">
-            <FormField label="পরিকল্পিত মিনিট">
-              <input type="number" min="0" className="field" value={form.planned_minutes} onChange={(event) => setForm({ ...form, planned_minutes: Number(event.target.value) })} />
-            </FormField>
-            <FormField label="বাস্তব মিনিট">
-              <input type="number" min="0" className="field" value={form.actual_minutes} onChange={(event) => setForm({ ...form, actual_minutes: Number(event.target.value) })} />
-            </FormField>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <FormField label="অবস্থা">
-              <select className="field" value={form.status} onChange={(event) => setForm({ ...form, status: event.target.value })}>
-                {["সম্পন্ন", "আংশিক", "চলছে", "শুরু হয়নি"].map((status) => <option key={status}>{status}</option>)}
-              </select>
-            </FormField>
+          <FormField label="পরিকল্পিত মিনিট (ঐচ্ছিক)">
+            <input type="number" min="0" className="field" value={form.planned_minutes} onChange={(event) => setForm({ ...form, planned_minutes: Number(event.target.value) })} />
+          </FormField>
+          <div className={`grid ${editingId ? "grid-cols-2" : "grid-cols-1"} gap-3`}>
+            {editingId && (
+              <FormField label="অবস্থা">
+                <select className="field" value={form.status} onChange={(event) => setForm({ ...form, status: event.target.value })}>
+                  {["সম্পন্ন", "আংশিক", "চলছে", "শুরু হয়নি"].map((status) => <option key={status}>{status}</option>)}
+                </select>
+              </FormField>
+            )}
             <FormField label="বোঝার মান (১–৫)">
               <select className="field" value={form.understanding || 3} onChange={(event) => setForm({ ...form, understanding: Number(event.target.value) })}>
                 {[1, 2, 3, 4, 5].map((rating) => <option key={rating}>{rating}</option>)}
@@ -136,11 +139,17 @@ export default function StudyLogsManager({ logs, subjects, studyTrack, busy, onS
           <FormField label="নোট">
             <textarea className="field min-h-16" value={form.notes || ""} onChange={(event) => setForm({ ...form, notes: event.target.value })} />
           </FormField>
-          <div className="flex gap-2">
-            <button disabled={busy || Boolean(activeTimerTrack)} className="btn btn-primary flex-1 disabled:opacity-50">
-              <Save size={16} /> {busy ? "সংরক্ষণ হচ্ছে..." : activeTimerTrack ? "চলমান পড়ার timer শেষ করে সেভ করো" : editingId ? "আপডেট করো" : "পড়ার হিসাব সংরক্ষণ"}
-            </button>
-          </div>
+          {editingId ? (
+            <div className="flex gap-2">
+              <button disabled={busy || Boolean(activeTimerTrack)} className="btn btn-primary flex-1 disabled:opacity-50">
+                <Save size={16} /> {busy ? "আপডেট হচ্ছে..." : "আপডেট করো"}
+              </button>
+            </div>
+          ) : (
+            <p className="rounded-xl bg-green-500/10 px-3 py-2.5 text-xs font-semibold leading-relaxed text-green-800">
+              পড়া শুরু ও শেষ করলে সময়, তারিখ এবং সম্পন্ন অবস্থা stopwatch থেকে স্বয়ংক্রিয়ভাবে সেভ হবে।
+            </p>
+          )}
           </fieldset>
           {editingId && <button type="button" onClick={resetForm} className="btn btn-plain mt-3">বাতিল</button>}
         </form>
