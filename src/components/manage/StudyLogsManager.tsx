@@ -2,7 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { Save } from "lucide-react";
-import type { StudyLog, StudyLogInput, Subject } from "@/lib/types";
+import type { StudyLog, StudyLogInput, StudyTrack, Subject } from "@/lib/types";
 import {
   EmptyState,
   FormField,
@@ -17,6 +17,7 @@ import {
 type StudyLogsManagerProps = {
   logs: StudyLog[];
   subjects: Subject[];
+  studyTrack: StudyTrack;
   busy: boolean;
   onSave: (item: StudyLogInput, id?: string) => Promise<boolean>;
   onDelete: (id: string) => void;
@@ -27,20 +28,20 @@ function today() {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
 
-function createEmptyLog(): StudyLogInput {
+function createEmptyLog(studyTrack: StudyTrack): StudyLogInput {
   return {
-    study_date: today(), subject_id: null, subject_name: null, topic: "", planned_minutes: 60,
+    study_date: today(), subject_id: null, subject_name: null, study_track: studyTrack, topic: "", planned_minutes: 60,
     actual_minutes: 60, status: "সম্পন্ন", understanding: 3, notes: "",
   };
 }
 
-export default function StudyLogsManager({ logs, subjects, busy, onSave, onDelete }: StudyLogsManagerProps) {
-  const [form, setForm] = useState<StudyLogInput>(createEmptyLog);
+export default function StudyLogsManager({ logs, subjects, studyTrack, busy, onSave, onDelete }: StudyLogsManagerProps) {
+  const [form, setForm] = useState<StudyLogInput>(() => createEmptyLog(studyTrack));
   const [editingId, setEditingId] = useState<string | null>(null);
 
   function resetForm() {
     setEditingId(null);
-    setForm(createEmptyLog());
+    setForm(createEmptyLog(studyTrack));
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -48,6 +49,7 @@ export default function StudyLogsManager({ logs, subjects, busy, onSave, onDelet
     const subjectName = getSubjectInputValue(subjects, form.subject_id, form.subject_name);
     const saveData: StudyLogInput = {
       ...form,
+      study_track: studyTrack,
       ...normalizeSubjectInput(subjects, subjectName),
     };
     if (await onSave(saveData, editingId || undefined)) resetForm();
@@ -59,6 +61,7 @@ export default function StudyLogsManager({ logs, subjects, busy, onSave, onDelet
       study_date: item.study_date,
       subject_id: item.subject_id || null,
       subject_name: item.subject_name || null,
+      study_track: studyTrack,
       topic: item.topic,
       planned_minutes: item.planned_minutes,
       actual_minutes: item.actual_minutes,
@@ -68,10 +71,12 @@ export default function StudyLogsManager({ logs, subjects, busy, onSave, onDelet
     });
   }
 
+  const trackLabel = studyTrack === "academic" ? "একাডেমিক" : studyTrack === "duet_department" ? "DUET Department" : "DUET Non-Department";
+
   return (
     <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(300px,.8fr)_minmax(0,1.2fr)]">
       <section className="card p-5">
-        <h2 className="mb-4 font-extrabold text-green-950">{editingId ? "পড়ার লগ সম্পাদনা" : "আজকের পড়া এন্ট্রি"}</h2>
+        <h2 className="mb-4 font-extrabold text-green-950">{editingId ? "পড়ার হিসাব সম্পাদনা" : `${trackLabel} পড়া যোগ করো`}</h2>
         <form onSubmit={handleSubmit} className="grid gap-3">
           <FormField label="তারিখ">
             <input type="date" className="field" value={form.study_date} onChange={(event) => setForm({ ...form, study_date: event.target.value })} />
@@ -79,14 +84,14 @@ export default function StudyLogsManager({ logs, subjects, busy, onSave, onDelet
           <FormField label="বিষয়">
             <SubjectField
               subjects={subjects}
-              listId="study-log-subject-suggestions"
+              listId={`${studyTrack}-study-log-subjects`}
               value={getSubjectInputValue(subjects, form.subject_id, form.subject_name)}
               optional
               onChange={(value) => setForm({ ...form, ...resolveSubjectInput(subjects, value) })}
             />
           </FormField>
-          <FormField label="টপিক">
-            <input required className="field" value={form.topic} onChange={(event) => setForm({ ...form, topic: event.target.value })} placeholder="আজ কী পড়লে?" />
+          <FormField label="আজ কী পড়লে?">
+            <input required className="field" value={form.topic} onChange={(event) => setForm({ ...form, topic: event.target.value })} placeholder="পড়া বা টপিকের নাম" />
           </FormField>
           <div className="grid grid-cols-2 gap-3">
             <FormField label="পরিকল্পিত মিনিট">
@@ -113,7 +118,7 @@ export default function StudyLogsManager({ logs, subjects, busy, onSave, onDelet
           </FormField>
           <div className="flex gap-2">
             <button disabled={busy} className="btn btn-primary flex-1">
-              <Save size={16} /> {editingId ? "আপডেট করো" : "পড়ার হিসাব সংরক্ষণ"}
+              <Save size={16} /> {busy ? "সংরক্ষণ হচ্ছে..." : editingId ? "আপডেট করো" : "পড়ার হিসাব সংরক্ষণ"}
             </button>
             {editingId && <button type="button" onClick={resetForm} className="btn btn-plain">বাতিল</button>}
           </div>
@@ -121,9 +126,9 @@ export default function StudyLogsManager({ logs, subjects, busy, onSave, onDelet
       </section>
 
       <section className="card p-5">
-        <h2 className="mb-4 font-extrabold text-green-950">সাম্প্রতিক পড়ার হিসাব</h2>
+        <h2 className="mb-4 font-extrabold text-green-950">{trackLabel} পড়ার হিসাব ({logs.length})</h2>
         <div className="space-y-3">
-          {logs.length === 0 ? <EmptyState>কোনো পড়ার লগ নেই।</EmptyState> : logs.map((item) => (
+          {logs.length === 0 ? <EmptyState>এখনো কোনো পড়ার হিসাব যোগ করা হয়নি।</EmptyState> : logs.map((item) => (
             <article key={item.id} className="flex items-start justify-between gap-3 rounded-xl border border-slate-100 p-3">
               <div className="min-w-0 flex-1">
                 <p className="break-words text-xs font-bold text-green-700">{item.study_date} · {item.actual_minutes} মিনিট</p>
@@ -133,7 +138,7 @@ export default function StudyLogsManager({ logs, subjects, busy, onSave, onDelet
                 </p>
                 {item.notes && <p className="mt-1 text-xs text-slate-400">{item.notes}</p>}
               </div>
-              <RecordActions onEdit={() => editItem(item)} onDelete={() => onDelete(item.id)} />
+              <RecordActions disabled={busy} onEdit={() => editItem(item)} onDelete={() => onDelete(item.id)} />
             </article>
           ))}
         </div>
