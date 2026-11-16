@@ -1,3 +1,13 @@
+export type StudyTrack = "academic" | "duet_department" | "duet_non_department";
+
+export type SubjectCategory = "Academic" | "DUET Department" | "DUET Non-Department";
+
+export type PublicStudyStats = {
+  academic_minutes: number;
+  duet_department_minutes: number;
+  duet_non_department_minutes: number;
+};
+
 export type Subject = {
   id: string;
   name: string;
@@ -24,6 +34,7 @@ export type StudyLog = {
   study_date: string;
   subject_id?: string | null;
   subject_name?: string | null;
+  study_track?: StudyTrack | null;
   topic: string;
   planned_minutes: number;
   actual_minutes: number;
