@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { Save } from "lucide-react";
 import type { StudyLog, StudyLogInput, StudyTrack, Subject } from "@/lib/types";
+import StudyStopwatch from "@/components/manage/StudyStopwatch";
 import {
   EmptyState,
   FormField,
@@ -38,6 +39,12 @@ function createEmptyLog(studyTrack: StudyTrack): StudyLogInput {
 export default function StudyLogsManager({ logs, subjects, studyTrack, busy, onSave, onDelete }: StudyLogsManagerProps) {
   const [form, setForm] = useState<StudyLogInput>(() => createEmptyLog(studyTrack));
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [activeTimerTrack, setActiveTimerTrack] = useState<StudyTrack | null>(null);
+  const stopwatchEntry: StudyLogInput = {
+    ...form,
+    study_track: studyTrack,
+    topic: form.topic.trim() || getSubjectInputValue(subjects, form.subject_id, form.subject_name).trim(),
+  };
 
   function resetForm() {
     setEditingId(null);
@@ -46,6 +53,7 @@ export default function StudyLogsManager({ logs, subjects, studyTrack, busy, onS
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (activeTimerTrack) return;
     const subjectName = getSubjectInputValue(subjects, form.subject_id, form.subject_name);
     const saveData: StudyLogInput = {
       ...form,
@@ -77,7 +85,19 @@ export default function StudyLogsManager({ logs, subjects, studyTrack, busy, onS
     <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(300px,.8fr)_minmax(0,1.2fr)]">
       <section className="card p-5">
         <h2 className="mb-4 font-extrabold text-green-950">{editingId ? "পড়ার হিসাব সম্পাদনা" : `${trackLabel} পড়া যোগ করো`}</h2>
-        <form onSubmit={handleSubmit} className="grid gap-3">
+        <StudyStopwatch
+          entry={stopwatchEntry}
+          canStart={!editingId && Boolean(stopwatchEntry.topic.trim())}
+          busy={busy}
+          onSessionChange={setActiveTimerTrack}
+          onFinish={async (timedEntry) => {
+            const saved = await onSave(timedEntry);
+            if (saved && timedEntry.study_track === studyTrack) resetForm();
+            return saved;
+          }}
+        />
+        <form onSubmit={handleSubmit}>
+          <fieldset disabled={Boolean(activeTimerTrack)} className="grid min-w-0 gap-3 border-0 p-0 disabled:opacity-60">
           <FormField label="তারিখ">
             <input type="date" className="field" value={form.study_date} onChange={(event) => setForm({ ...form, study_date: event.target.value })} />
           </FormField>
@@ -117,11 +137,12 @@ export default function StudyLogsManager({ logs, subjects, studyTrack, busy, onS
             <textarea className="field min-h-16" value={form.notes || ""} onChange={(event) => setForm({ ...form, notes: event.target.value })} />
           </FormField>
           <div className="flex gap-2">
-            <button disabled={busy} className="btn btn-primary flex-1">
-              <Save size={16} /> {busy ? "সংরক্ষণ হচ্ছে..." : editingId ? "আপডেট করো" : "পড়ার হিসাব সংরক্ষণ"}
+            <button disabled={busy || Boolean(activeTimerTrack)} className="btn btn-primary flex-1 disabled:opacity-50">
+              <Save size={16} /> {busy ? "সংরক্ষণ হচ্ছে..." : activeTimerTrack ? "চলমান পড়ার timer শেষ করে সেভ করো" : editingId ? "আপডেট করো" : "পড়ার হিসাব সংরক্ষণ"}
             </button>
-            {editingId && <button type="button" onClick={resetForm} className="btn btn-plain">বাতিল</button>}
           </div>
+          </fieldset>
+          {editingId && <button type="button" onClick={resetForm} className="btn btn-plain mt-3">বাতিল</button>}
         </form>
       </section>
 

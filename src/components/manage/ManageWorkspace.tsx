@@ -156,7 +156,7 @@ export default function ManageWorkspace({ activeTab }: ManageWorkspaceProps) {
           logs={workspace.logs}
           subjects={workspace.subjects}
           busy={busy}
-          onSave={(item: StudyLogInput, id?: string) => saveRecord("study_logs", item, id, id ? "পড়ার হিসাব আপডেট হয়েছে।" : "একাডেমিক পড়ার হিসাব সংরক্ষণ হয়েছে।")}
+          onSave={(item: StudyLogInput, id?: string) => saveRecord("study_logs", item, id, id ? "পড়ার হিসাব আপডেট হয়েছে।" : item.study_track === "academic" ? "একাডেমিক পড়ার হিসাব সংরক্ষণ হয়েছে।" : item.study_track === "duet_department" ? "DUET Department পড়ার হিসাব সংরক্ষণ হয়েছে।" : "DUET Non-Department পড়ার হিসাব সংরক্ষণ হয়েছে।")}
           onSaveSubject={(item: SubjectInput, id?: string) => saveRecord("subjects", item, id, id ? "বিষয় আপডেট হয়েছে।" : "একাডেমিক বিষয় যোগ হয়েছে।")}
           onDeleteLog={(id) => requestDelete("study_logs", id)}
           onDeleteSubject={(id) => requestDelete("subjects", id)}
@@ -165,7 +165,7 @@ export default function ManageWorkspace({ activeTab }: ManageWorkspaceProps) {
           logs={workspace.logs}
           subjects={workspace.subjects}
           busy={busy}
-          onSave={(item: StudyLogInput, id?: string) => saveRecord("study_logs", item, id, id ? "পড়ার হিসাব আপডেট হয়েছে।" : "DUET পড়ার হিসাব সংরক্ষণ হয়েছে।")}
+          onSave={(item: StudyLogInput, id?: string) => saveRecord("study_logs", item, id, id ? "পড়ার হিসাব আপডেট হয়েছে।" : item.study_track === "academic" ? "একাডেমিক পড়ার হিসাব সংরক্ষণ হয়েছে।" : item.study_track === "duet_department" ? "DUET Department পড়ার হিসাব সংরক্ষণ হয়েছে।" : "DUET Non-Department পড়ার হিসাব সংরক্ষণ হয়েছে।")}
           onSaveSubject={(item: SubjectInput, id?: string) => saveRecord("subjects", item, id, id ? "বিষয় আপডেট হয়েছে।" : "DUET বিষয় যোগ হয়েছে।")}
           onDeleteLog={(id) => requestDelete("study_logs", id)}
           onDeleteSubject={(id) => requestDelete("subjects", id)}
