@@ -15,7 +15,7 @@ function isSameOrigin(request: NextRequest) {
 
 const fields: Record<string, string[]> = {
   weekly_routine: ["day", "start_time", "end_time", "title", "subject_id", "subject_name", "category", "notes", "sort_order"],
-  study_logs: ["study_date", "subject_id", "subject_name", "topic", "planned_minutes", "actual_minutes", "status", "understanding", "notes"],
+  study_logs: ["study_date", "subject_id", "subject_name", "study_track", "topic", "planned_minutes", "actual_minutes", "status", "understanding", "notes"],
   study_tasks: ["title", "subject_id", "subject_name", "task_type", "due_date", "priority", "status", "notes"],
   subjects: ["name", "category", "code", "color"]
 };
@@ -40,18 +40,18 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ c
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error(`Update ${collection} failed:`, error);
-    return NextResponse.json({ error: "আপডেট করা যায়নি।" }, { status: 500 });
+    return NextResponse.json({ error: "আপডেট হচ্ছে না!" }, { status: 500 });
   }
 }
 
 export async function DELETE(request: NextRequest, context: { params: Promise<{ collection: string; id: string }> }) {
-  if (!(await isOwner())) return NextResponse.json({ error: "অনুমতি নেই।" }, { status: 401 });
-  if (!isSameOrigin(request)) return NextResponse.json({ error: "অনুরোধ গ্রহণ করা হয়নি।" }, { status: 403 });
+  if (!(await isOwner())) return NextResponse.json({ error: "অনুমতি নেই!" }, { status: 401 });
+  if (!isSameOrigin(request)) return NextResponse.json({ error: "অনুরোধ গ্রহণ করা হয়নি!" }, { status: 403 });
   const { collection, id } = await context.params;
-  if (!fields[collection] || !ObjectId.isValid(id)) return NextResponse.json({ error: "তথ্য পাওয়া যায়নি।" }, { status: 404 });
+  if (!fields[collection] || !ObjectId.isValid(id)) return NextResponse.json({ error: "তথ্য পাওয়া যায়নি।" }, { status: 404 });
   try {
     const result = await (await getDb()).collection(collection).deleteOne({ _id: new ObjectId(id) });
-    if (!result.deletedCount) return NextResponse.json({ error: "তথ্য পাওয়া যায়নি।" }, { status: 404 });
+    if (!result.deletedCount) return NextResponse.json({ error: "তথ্য পাওয়া যায়নি।" }, { status: 404 });
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error(`Delete ${collection} failed:`, error);
