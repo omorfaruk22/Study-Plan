@@ -144,15 +144,15 @@ export default function DataBackupTools({ onRestored }: DataBackupToolsProps) {
           <p className="text-[11px] leading-4 text-green-100/65">পুরো data JSON-এ backup, পড়ার হিসাব Excel-compatible CSV-তে export, অথবা merge restore</p>
         </div>
       </div>
-      <div className="flex w-full flex-wrap gap-2 sm:w-auto">
-        <button type="button" disabled={busy} onClick={() => void exportBackup()} className="btn btn-primary flex-1 px-3 py-2 text-xs sm:flex-none">
-          <Download size={15} /> JSON Backup
+      <div className="flex w-full flex-wrap gap-1.5 sm:w-auto sm:justify-end">
+        <button type="button" aria-label="JSON backup download" title="JSON Backup" disabled={busy} onClick={() => void exportBackup()} className="btn btn-compact btn-primary">
+          <Download size={13} /> <span className="sm:hidden">JSON</span><span className="hidden sm:inline">JSON Backup</span>
         </button>
-        <button type="button" disabled={busy} onClick={() => void exportStudyLogsCsv()} className="btn btn-plain flex-1 px-3 py-2 text-xs sm:flex-none">
-          <Download size={15} /> CSV Log
+        <button type="button" aria-label="CSV study log download" title="CSV Log" disabled={busy} onClick={() => void exportStudyLogsCsv()} className="btn btn-compact btn-plain">
+          <Download size={13} /> <span className="sm:hidden">CSV</span><span className="hidden sm:inline">CSV Log</span>
         </button>
-        <button type="button" disabled={busy} onClick={() => fileInput.current?.click()} className="btn btn-plain flex-1 px-3 py-2 text-xs sm:flex-none">
-          <Upload size={15} /> Restore
+        <button type="button" aria-label="Restore from backup" title="Restore" disabled={busy} onClick={() => fileInput.current?.click()} className="btn btn-compact btn-plain">
+          <Upload size={13} /> Restore
         </button>
       </div>
       <input ref={fileInput} type="file" accept="application/json,.json" className="hidden" onChange={(event) => void selectBackup(event)} />
