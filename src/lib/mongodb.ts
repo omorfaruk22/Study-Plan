@@ -9,7 +9,11 @@ function getClientPromise(): Promise<MongoClient> {
   const uri = process.env.MONGODB_URI;
   if (!uri) throw new Error("MONGODB_URI is missing. Add your MongoDB Atlas connection string to .env.local.");
   if (!global._mongoClientPromise) {
-    global._mongoClientPromise = new MongoClient(uri, { maxPoolSize: 10, serverSelectionTimeoutMS: 10000 }).connect();
+    const clientPromise = new MongoClient(uri, { maxPoolSize: 10, serverSelectionTimeoutMS: 10000 }).connect();
+    global._mongoClientPromise = clientPromise.catch((error: unknown) => {
+      global._mongoClientPromise = undefined;
+      throw error;
+    });
   }
   return global._mongoClientPromise;
 }
