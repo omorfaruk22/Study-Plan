@@ -198,7 +198,7 @@ export default function CurrentRoutinePanel({ routine, subjects }: CurrentRoutin
           <p className="mb-2 text-[11px] font-extrabold uppercase tracking-wider text-slate-500">আজকের সময়সূচি</p>
           <div className="space-y-1.5">
             {agendaItems.map((item) => (
-              <div key={item.id} className={`flex items-center gap-2.5 rounded-xl px-2.5 py-2 ${item.id === activeItem?.id ? "bg-green-500/10" : "bg-slate-50/70"}`}>
+              <div key={item.id} className={`flex items-center gap-2.5 rounded-xl border px-2.5 py-2 transition-colors ${item.id === activeItem?.id ? "border-green-500/30 bg-green-500/10" : "border-slate-100 bg-slate-50 hover:bg-green-50"}`}>
                 <span className="w-[76px] shrink-0 text-[10px] font-bold tabular-nums text-green-600">{formatTime12(item.start_time)}</span>
                 <span className="min-w-0 flex-1 truncate text-xs font-semibold text-slate-700">{item.title}</span>
                 {item.id === activeItem?.id && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-green-500" />}
