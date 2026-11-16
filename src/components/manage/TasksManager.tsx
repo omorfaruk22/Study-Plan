@@ -133,7 +133,7 @@ export default function TasksManager({ tasks, subjects, busy, onSave, onDelete }
                 </div>
                 {item.notes && <p className="mt-1 text-xs text-slate-400">{item.notes}</p>}
               </div>
-              <RecordActions onEdit={() => editItem(item)} onDelete={() => onDelete(item.id)} />
+              <RecordActions disabled={busy} onEdit={() => editItem(item)} onDelete={() => onDelete(item.id)} />
             </article>
           ))}
         </div>
