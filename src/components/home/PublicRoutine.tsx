@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { CalendarDays, Eye } from "lucide-react";
 import type { RoutineItem, Subject } from "@/lib/types";
+import { formatTime12 } from "@/lib/time-format";
 
 type PublicRoutineProps = {
   routine: RoutineItem[];
@@ -56,8 +57,8 @@ export default function PublicRoutine({ routine, subjects, loading }: PublicRout
                 {items.map((item) => (
                   <div key={item.id} className="flex gap-4 px-5 py-4">
                     <div className="w-[82px] shrink-0 sm:w-[108px]">
-                      <p className="text-xs font-bold text-green-800">{item.start_time}</p>
-                      <p className="mt-1 text-[11px] text-slate-400">{item.end_time}</p>
+                      <p className="text-xs font-bold text-green-800">{formatTime12(item.start_time)}</p>
+                      <p className="mt-1 text-[11px] text-slate-400">{formatTime12(item.end_time)}</p>
                     </div>
                     <div className="min-w-0">
                       <p className="text-sm font-bold text-slate-800">{item.title}</p>

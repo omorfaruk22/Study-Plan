@@ -3,19 +3,23 @@
 import Header from "@/components/Header";
 import OwnerNotice from "@/components/home/OwnerNotice";
 import PublicRoutine from "@/components/home/PublicRoutine";
+import PublicStudyStats from "@/components/home/PublicStudyStats";
 import StudyFocusCards from "@/components/home/StudyFocusCards";
 import StudyHero from "@/components/home/StudyHero";
 import SubjectList from "@/components/home/SubjectList";
 import { usePublicStudyData } from "@/hooks/usePublicStudyData";
 
 export default function PublicHomePage() {
-  const { routine, subjects, loading, demoMode } = usePublicStudyData();
+  const { routine, subjects, studyStats, loading, demoMode } = usePublicStudyData();
 
   return (
     <>
       <Header />
-      <main className="container pb-16 pt-10">
-        <StudyHero />
+      <main className="container pb-16 pt-6 sm:pt-10">
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-stretch">
+          <StudyHero />
+          <PublicStudyStats stats={studyStats} loading={loading} />
+        </div>
         <StudyFocusCards />
         <PublicRoutine routine={routine} subjects={subjects} loading={loading} />
         <SubjectList subjects={subjects} />
