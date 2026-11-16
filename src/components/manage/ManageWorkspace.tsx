@@ -63,13 +63,13 @@ export default function ManageWorkspace({ activeTab }: ManageWorkspaceProps) {
     return () => { active = false; };
   }, [load, router]);
 
-  async function runAction(action: () => Promise<void>, successMessage: string) {
+  async function runAction(action: () => Promise<void>, successMessage: string, refreshWorkspace = true) {
     setBusy(true);
     setError("");
     setMessage("");
     try {
       await action();
-      await load();
+      if (refreshWorkspace) await load();
       setMessage(successMessage);
       return true;
     } catch (actionError) {
@@ -81,7 +81,40 @@ export default function ManageWorkspace({ activeTab }: ManageWorkspaceProps) {
   }
 
   function saveRecord(collection: OwnerCollection, item: unknown, id: string | undefined, successMessage: string) {
-    const url = id ? `/api/owner/${collection}/${id}` : `/api/owner/${collection}`;
+    const url = id ? "/api/owner/" + collection + "/" + id : "/api/owner/" + collection;
+    if (collection === "subjects") {
+      const subjectData = item as SubjectInput;
+      const subjectId = id || "pending-" + Date.now() + "-" + Math.random().toString(36).slice(2);
+      const previousSubjects = workspace.subjects;
+      const optimisticSubject = { ...subjectData, id: subjectId };
+      setWorkspace((current) => ({
+        ...current,
+        subjects: [
+          ...current.subjects.filter((subject) => subject.id !== subjectId && (!id || subject.id !== id)),
+          optimisticSubject,
+        ].sort((first, second) => first.category.localeCompare(second.category) || first.name.localeCompare(second.name)),
+      }));
+
+      return runAction(async () => {
+        try {
+          const response = await requestApi<{ id?: string }>(url, id ? "PATCH" : "POST", item);
+          const savedId = id || response.id;
+          if (!savedId) throw new Error("বিষয়টি সেভ হয়েছে, কিন্তু তার ID পাওয়া যায়নি।");
+          const savedSubject = { ...subjectData, id: savedId };
+          setWorkspace((current) => ({
+            ...current,
+            subjects: [
+              ...current.subjects.filter((subject) => subject.id !== subjectId && subject.id !== savedId),
+              savedSubject,
+            ].sort((first, second) => first.category.localeCompare(second.category) || first.name.localeCompare(second.name)),
+          }));
+        } catch (saveError) {
+          setWorkspace((current) => ({ ...current, subjects: previousSubjects }));
+          throw saveError;
+        }
+      }, successMessage, false);
+    }
+
     return runAction(async () => { await requestApi(url, id ? "PATCH" : "POST", item); }, successMessage);
   }
 
