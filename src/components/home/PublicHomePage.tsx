@@ -1,6 +1,7 @@
 "use client";
 
 import Header from "@/components/Header";
+import LiveClocks from "@/components/home/LiveClocks";
 import OwnerNotice from "@/components/home/OwnerNotice";
 import PublicRoutine from "@/components/home/PublicRoutine";
 import PublicStudyStats from "@/components/home/PublicStudyStats";
@@ -15,7 +16,10 @@ export default function PublicHomePage() {
   return (
     <>
       <Header />
-      <main className="container pb-16 pt-6 sm:pt-10">
+      <main className="container pb-16 pt-4 sm:pt-6">
+        <div className="mb-4 flex justify-start">
+          <LiveClocks />
+        </div>
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-stretch">
           <StudyHero />
           <PublicStudyStats stats={studyStats} loading={loading} />
