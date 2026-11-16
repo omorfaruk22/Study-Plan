@@ -16,7 +16,7 @@ export default function StudyHero() {
           <span className="text-lime-300">আমার পরিকল্পনায়।</span>
         </h1>
         <p className="mt-4 max-w-xl text-sm leading-7 text-green-100 md:text-base">
-          কলেজের একাডেমিক পড়া, DUET প্রস্তুতি এবং Web Development—সবকিছু এক জায়গায় গুছিয়ে রাখার ব্যক্তিগত স্টাডি স্পেস।
+          একাডেমিক পড়া ও DUET Department এবং Non-Department প্রস্তুতি—সবকিছু এক জায়গায় গুছিয়ে রাখার ব্যক্তিগত স্টাডি স্পেস।
         </p>
         <div className="mt-7 flex flex-wrap gap-3">
           <Link href="/login" className="btn bg-lime-300 text-green-950 hover:bg-lime-200">
