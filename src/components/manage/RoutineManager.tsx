@@ -3,6 +3,8 @@
 import { useState, type FormEvent } from "react";
 import { Save, X } from "lucide-react";
 import type { RoutineInput, RoutineItem, Subject } from "@/lib/types";
+import { formatTime12 } from "@/lib/time-format";
+import TimeInput from "@/components/manage/TimeInput";
 import {
   EmptyState,
   FormField,
@@ -91,10 +93,10 @@ export default function RoutineManager({ routine, subjects, busy, onSave, onDele
             </select>
           </FormField>
           <FormField label="শুরুর সময়">
-            <input required className="field" value={form.start_time} onChange={(event) => setForm({ ...form, start_time: event.target.value })} placeholder="19:00" />
+            <TimeInput value={form.start_time} onChange={(value) => setForm({ ...form, start_time: value })} />
           </FormField>
           <FormField label="শেষের সময়">
-            <input required className="field" value={form.end_time} onChange={(event) => setForm({ ...form, end_time: event.target.value })} placeholder="20:00" />
+            <TimeInput value={form.end_time} onChange={(value) => setForm({ ...form, end_time: value })} />
           </FormField>
           <FormField label="কাজ / পড়ার নাম" className="sm:col-span-2">
             <input required className="field" value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} placeholder="যেমন: Database Management পড়া" />
@@ -126,13 +128,13 @@ export default function RoutineManager({ routine, subjects, busy, onSave, onDele
           {routine.length === 0 ? <EmptyState>কোনো রুটিন নেই।</EmptyState> : routine.map((item) => (
             <article key={item.id} className="flex items-start justify-between gap-3 rounded-xl border border-slate-100 p-3">
               <div className="min-w-0">
-                <span className="text-[11px] font-bold text-green-700">{item.day} · {item.start_time}–{item.end_time}</span>
+                <span className="text-[11px] font-bold text-green-700">{item.day} · {formatTime12(item.start_time)}–{formatTime12(item.end_time)}</span>
                 <p className="mt-1 text-sm font-bold">{item.title}</p>
                 <p className="mt-1 text-xs text-slate-500">
                   {item.category}{item.subject_id || item.subject_name ? ` · ${getSubjectName(subjects, item.subject_id, item.subject_name)}` : ""}{item.notes ? ` · ${item.notes}` : ""}
                 </p>
               </div>
-              <RecordActions onEdit={() => editItem(item)} onDelete={() => onDelete(item.id)} />
+              <RecordActions disabled={busy} onEdit={() => editItem(item)} onDelete={() => onDelete(item.id)} />
             </article>
           ))}
         </div>
