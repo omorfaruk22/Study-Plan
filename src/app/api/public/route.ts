@@ -19,8 +19,11 @@ const statKeys: Record<StudyTrack, keyof PublicStudyStats> = {
 };
 
 function publicRoutine(doc: Record<string, unknown>) {
-  const { _id, day, start_time, end_time, title, subject_id, subject_name, category, sort_order } = doc;
-  return { id: String(_id), day, start_time, end_time, title, subject_id, subject_name, category, sort_order };
+  const { _id, day, start_time, end_time, title, subject_id, subject_name, category, sort_order, notes } = doc;
+  return {
+    id: String(_id), day, start_time, end_time, title, subject_id, subject_name, category, sort_order,
+    ...(category === "ক্লাস রুটিন" ? { notes } : {}),
+  };
 }
 
 function publicSubject(doc: Record<string, unknown>) {
