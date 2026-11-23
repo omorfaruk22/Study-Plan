@@ -22,9 +22,9 @@ export default function SiteNavigation({ owner = false }: SiteNavigationProps) {
     <nav aria-label="Main navigation" className="flex shrink-0 items-center gap-1 min-[440px]:gap-2">
       <Link
         href="/"
-        className="hidden rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-green-50 sm:block"
+        className="hidden rounded-lg border border-green-500/25 bg-green-500/10 px-3 py-2 text-sm font-semibold text-green-300 transition hover:bg-green-500/20 hover:text-green-200 sm:block"
       >
-        Public Routine
+        Daily Routine
       </Link>
 
       {owner ? (
