@@ -7,8 +7,8 @@ function getLocationLabel(timeZone: string) {
   const city = timeZone.split("/").pop()?.replace(/_/g, " ") || "Local time";
   const knownPlaces: Record<string, string> = {
     Calcutta: "Kolkata, India",
-    Dacca: "Dhaka, Bangladesh",
-    Dhaka: "Dhaka, Bangladesh",
+    Dacca: "Bangladesh",
+    Dhaka: "Bangladesh",
     Kathmandu: "Kathmandu, Nepal",
     Katmandu: "Kathmandu, Nepal",
     London: "London, UK",
