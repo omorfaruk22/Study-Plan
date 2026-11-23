@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { ObjectId } from "mongodb";
 import { isOwner } from "@/lib/auth-guard";
 import { getDb } from "@/lib/mongodb";
 import { defaultRoutine } from "@/lib/defaults";
@@ -19,7 +20,14 @@ export async function GET() {
     const routineCollection = db.collection("weekly_routine");
 
     if (await routineCollection.countDocuments() === 0) {
-      await routineCollection.insertMany(defaultRoutine.map(item => ({ ...item, createdAt: new Date(), updatedAt: new Date() })));
+      const now = new Date();
+      await routineCollection.bulkWrite(defaultRoutine.map((item, index) => ({
+        updateOne: {
+          filter: { _id: new ObjectId(String(index + 1).padStart(24, "0")) },
+          update: { $setOnInsert: { ...item, createdAt: now, updatedAt: now } },
+          upsert: true,
+        },
+      })), { ordered: false });
     }
 
     const [routine, logs, tasks, subjects] = await Promise.all([

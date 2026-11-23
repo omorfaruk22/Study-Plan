@@ -2,25 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import { isOwner } from "@/lib/auth-guard";
 import { getDb } from "@/lib/mongodb";
+import { ownerFields, pickOwnerRecord, validateOwnerRecord, type OwnerCollection } from "@/lib/owner-validation";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const fields = {
-  weekly_routine: ["day", "start_time", "end_time", "title", "subject_id", "subject_name", "category", "notes", "sort_order"],
-  study_logs: ["study_date", "subject_id", "subject_name", "study_track", "topic", "planned_minutes", "actual_minutes", "status", "understanding", "notes", "review_due_date", "last_reviewed_date"],
-  study_tasks: ["title", "subject_id", "subject_name", "task_type", "due_date", "priority", "status", "notes"],
-  subjects: ["name", "category", "code", "color"],
-} as const;
-
-type CollectionName = keyof typeof fields;
-const collectionNames = Object.keys(fields) as CollectionName[];
-const requiredFields: Record<CollectionName, string[]> = {
-  weekly_routine: ["day", "start_time", "end_time", "title", "category"],
-  study_logs: ["study_date", "topic"],
-  study_tasks: ["title"],
-  subjects: ["name", "category"],
-};
+const collectionNames = Object.keys(ownerFields) as OwnerCollection[];
 const defaultGoals = { academic_minutes: 0, duet_department_minutes: 0, duet_non_department_minutes: 0 };
 
 function isSameOrigin(request: NextRequest) {
@@ -63,7 +50,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json() as { backup?: Record<string, unknown> };
     const backup = body.backup;
-    if (!backup || backup.format !== "faruk-study-manager-backup" || backup.version !== 1) {
+    if (!backup || typeof backup !== "object" || Array.isArray(backup) || backup.format !== "faruk-study-manager-backup" || backup.version !== 1) {
       return NextResponse.json({ error: "এই backup format সমর্থিত নয়।" }, { status: 400 });
     }
     for (const collection of collectionNames) {
@@ -77,29 +64,30 @@ export async function POST(request: NextRequest) {
         if (!record || typeof record !== "object" || !/^[a-fA-F0-9]{24}$/.test(String((record as Record<string, unknown>).id || ""))) {
           return NextResponse.json({ error: "Backup-এ একটি record ID সঠিক নয়।" }, { status: 400 });
         }
-        const data = record as Record<string, unknown>;
-        if (requiredFields[collection].some((key) => !String(data[key] ?? "").trim())) {
-          return NextResponse.json({ error: "Backup-এ প্রয়োজনীয় তথ্য নেই বা সঠিক নয়।" }, { status: 400 });
-        }
+        const data = pickOwnerRecord(record, collection);
+        if (!data || validateOwnerRecord(collection, data, true)) return NextResponse.json({ error: "Backup-এ প্রয়োজনীয় তথ্য নেই বা সঠিক নয়।" }, { status: 400 });
       }
     }
     const goalInput = backup.goals as Record<string, unknown> | undefined;
     const goalKeys = Object.keys(defaultGoals) as (keyof typeof defaultGoals)[];
+    if (!goalInput || typeof goalInput !== "object" || Array.isArray(goalInput) || goalKeys.some((key) => !Object.prototype.hasOwnProperty.call(goalInput, key))) {
+      return NextResponse.json({ error: "Backup-এর দৈনিক লক্ষ্যগুলো নেই বা সঠিক নয়." }, { status: 400 });
+    }
     const goals = Object.fromEntries(goalKeys.map((key) => {
-      const value = Number(goalInput?.[key] ?? 0);
-      return [key, Number.isInteger(value) && value >= 0 && value <= 1440 ? value : NaN];
+      const value = goalInput[key];
+      return [key, typeof value === "number" && Number.isInteger(value) && value >= 0 && value <= 1440 ? value : NaN];
     })) as typeof defaultGoals;
     if (Object.values(goals).some((value) => !Number.isFinite(value))) {
       return NextResponse.json({ error: "Backup-এর দৈনিক লক্ষ্যগুলো সঠিক নয়।" }, { status: 400 });
     }
 
     const db = await getDb();
-    const restored: Record<CollectionName, number> = { weekly_routine: 0, study_logs: 0, study_tasks: 0, subjects: 0 };
+    const restored: Record<OwnerCollection, number> = { weekly_routine: 0, study_logs: 0, study_tasks: 0, subjects: 0 };
     for (const collection of collectionNames) {
       const records = backup[collection] as Record<string, unknown>[];
       const operations = records.map((record) => {
         const data: Record<string, unknown> = {};
-        for (const key of fields[collection]) {
+        for (const key of ownerFields[collection]) {
           if (Object.prototype.hasOwnProperty.call(record, key)) data[key] = record[key];
         }
         return {

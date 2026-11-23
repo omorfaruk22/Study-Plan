@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import { isOwner } from "@/lib/auth-guard";
 import { getDb } from "@/lib/mongodb";
+import { ownerFields, pickOwnerRecord, validateOwnerRecord, type OwnerCollection } from "@/lib/owner-validation";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -13,27 +14,18 @@ function isSameOrigin(request: NextRequest) {
   catch { return false; }
 }
 
-const fields: Record<string, string[]> = {
-  weekly_routine: ["day", "start_time", "end_time", "title", "subject_id", "subject_name", "category", "notes", "sort_order"],
-  study_logs: ["study_date", "subject_id", "subject_name", "study_track", "topic", "planned_minutes", "actual_minutes", "status", "understanding", "notes", "review_due_date", "last_reviewed_date"],
-  study_tasks: ["title", "subject_id", "subject_name", "task_type", "due_date", "priority", "status", "notes"],
-  subjects: ["name", "category", "code", "color"]
-};
-
-function safeData(input: Record<string, unknown>, allowed: string[]) {
-  const data: Record<string, unknown> = {};
-  for (const key of allowed) if (Object.prototype.hasOwnProperty.call(input, key)) data[key] = input[key];
-  return data;
-}
-
 export async function PATCH(request: NextRequest, context: { params: Promise<{ collection: string; id: string }> }) {
   if (!(await isOwner())) return NextResponse.json({ error: "অনুমতি নেই।" }, { status: 401 });
   if (!isSameOrigin(request)) return NextResponse.json({ error: "অনুরোধ গ্রহণ করা হয়নি।" }, { status: 403 });
   const { collection, id } = await context.params;
-  if (!fields[collection] || !ObjectId.isValid(id)) return NextResponse.json({ error: "তথ্য পাওয়া যায়নি।" }, { status: 404 });
+  if (!Object.prototype.hasOwnProperty.call(ownerFields, collection) || !ObjectId.isValid(id)) return NextResponse.json({ error: "তথ্য পাওয়া যায়নি।" }, { status: 404 });
+  const ownerCollection = collection as OwnerCollection;
   try {
-    const data = safeData(await request.json() as Record<string, unknown>, fields[collection]);
-    const result = await (await getDb()).collection(collection).updateOne(
+    const data = pickOwnerRecord(await request.json(), ownerCollection);
+    if (!data) return NextResponse.json({ error: "তথ্যের format সঠিক নয়।" }, { status: 400 });
+    const validationError = validateOwnerRecord(ownerCollection, data);
+    if (validationError) return NextResponse.json({ error: validationError }, { status: 400 });
+    const result = await (await getDb()).collection(ownerCollection).updateOne(
       { _id: new ObjectId(id) }, { $set: { ...data, updatedAt: new Date() } }
     );
     if (!result.matchedCount) return NextResponse.json({ error: "তথ্য পাওয়া যায়নি।" }, { status: 404 });
@@ -48,9 +40,10 @@ export async function DELETE(request: NextRequest, context: { params: Promise<{ 
   if (!(await isOwner())) return NextResponse.json({ error: "অনুমতি নেই!" }, { status: 401 });
   if (!isSameOrigin(request)) return NextResponse.json({ error: "অনুরোধ গ্রহণ করা হয়নি!" }, { status: 403 });
   const { collection, id } = await context.params;
-  if (!fields[collection] || !ObjectId.isValid(id)) return NextResponse.json({ error: "তথ্য পাওয়া যায়নি।" }, { status: 404 });
+  if (!Object.prototype.hasOwnProperty.call(ownerFields, collection) || !ObjectId.isValid(id)) return NextResponse.json({ error: "তথ্য পাওয়া যায়নি।" }, { status: 404 });
+  const ownerCollection = collection as OwnerCollection;
   try {
-    const result = await (await getDb()).collection(collection).deleteOne({ _id: new ObjectId(id) });
+    const result = await (await getDb()).collection(ownerCollection).deleteOne({ _id: new ObjectId(id) });
     if (!result.deletedCount) return NextResponse.json({ error: "তথ্য পাওয়া যায়নি।" }, { status: 404 });
     return NextResponse.json({ success: true });
   } catch (error) {
