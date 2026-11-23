@@ -8,6 +8,7 @@ import PublicStudyStats from "@/components/home/PublicStudyStats";
 import StudyFocusCards from "@/components/home/StudyFocusCards";
 import StudyHero from "@/components/home/StudyHero";
 import SubjectList from "@/components/home/SubjectList";
+import TodayClassRoutine from "@/components/home/TodayClassRoutine";
 import { usePublicStudyData } from "@/hooks/usePublicStudyData";
 
 export default function PublicHomePage() {
@@ -17,8 +18,9 @@ export default function PublicHomePage() {
     <>
       <Header />
       <main className="container pb-16 pt-4 sm:pt-6">
-        <div className="mb-4 flex justify-start">
+        <div className="mb-4 grid gap-3 md:grid-cols-[auto_minmax(0,1fr)] md:items-stretch">
           <LiveClocks />
+          <TodayClassRoutine routine={routine} loading={loading} />
         </div>
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-stretch">
           <StudyHero />
