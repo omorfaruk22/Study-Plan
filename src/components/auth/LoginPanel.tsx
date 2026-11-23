@@ -1,5 +1,5 @@
 import { signIn } from "@/auth";
-import { BookOpen, Chrome, ShieldCheck } from "lucide-react";
+import { BookOpen, Chrome } from "lucide-react";
 import AdminLoginForm from "@/components/auth/AdminLoginForm";
 
 export default function LoginPanel() {
@@ -14,9 +14,6 @@ export default function LoginPanel() {
           </div>
           <h1 className="mt-4 text-center text-2xl font-extrabold text-green-950">Owner Login</h1>
 
-          <div className="mt-6 flex items-center gap-2 text-xs font-extrabold uppercase tracking-[.13em] text-green-700">
-            <ShieldCheck size={15} /> Admin Login
-          </div>
           <AdminLoginForm enabled={adminLoginEnabled} />
 
           <form action={async () => {
@@ -28,9 +25,6 @@ export default function LoginPanel() {
             </button>
           </form>
 
-          <p className="mt-5 text-center text-xs text-slate-400">
-            Visitor? <a className="font-bold text-green-700" href="/">Public routine দেখো</a>
-          </p>
         </section>
       </div>
     </main>

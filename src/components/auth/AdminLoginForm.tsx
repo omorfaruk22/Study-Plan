@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { LogIn } from "lucide-react";
+import { AtSign, KeyRound, LogIn } from "lucide-react";
 import { adminLoginAction, type AdminLoginState } from "@/app/login/actions";
 
 const initialState: AdminLoginState = { error: "" };
@@ -14,26 +14,28 @@ export default function AdminLoginForm({ enabled }: { enabled: boolean }) {
   }
 
   return (
-    <form action={formAction} className="mt-6 grid gap-3">
-      <label className="grid gap-1.5">
-        <span className="label">Admin email</span>
+    <form action={formAction} className="mt-6 grid gap-3.5">
+      <label className="relative block">
+        <span className="sr-only">Admin email</span>
+        <AtSign size={17} aria-hidden="true" className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-green-600/70" />
         <input
-          className="field"
+          className="field pl-11"
           type="email"
           name="email"
           autoComplete="username"
-          placeholder="admin@example.com"
+          placeholder="name@example.com"
           required
         />
       </label>
-      <label className="grid gap-1.5">
-        <span className="label">Password</span>
+      <label className="relative block">
+        <span className="sr-only">Password</span>
+        <KeyRound size={17} aria-hidden="true" className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-green-600/70" />
         <input
-          className="field"
+          className="field pl-11"
           type="password"
           name="password"
           autoComplete="current-password"
-          placeholder="Admin password"
+          placeholder="••••••••••••"
           required
         />
       </label>
