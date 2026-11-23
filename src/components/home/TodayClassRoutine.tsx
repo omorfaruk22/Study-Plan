@@ -82,7 +82,7 @@ export default function TodayClassRoutine({ routine, loading }: TodayClassRoutin
                   </span>
                 )}
               </div>
-              <p className="mt-1 line-clamp-2 text-base font-semibold leading-5 text-slate-700 sm:text-lg sm:leading-6" title={item.title}>{item.title}</p>
+              <p className="mt-1 line-clamp-2 text-base font-medium leading-5 text-slate-700 sm:text-lg sm:leading-6" title={item.title}>{item.title}</p>
             </li>
           ))}
         </ul>
