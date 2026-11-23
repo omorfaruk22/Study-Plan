@@ -125,7 +125,7 @@ export default function DataBackupTools({ onRestored }: DataBackupToolsProps) {
   }
 
   return (
-    <details open={open} onToggle={(event) => setOpen(event.currentTarget.open)} className="mobile-disclosure mt-3 rounded-2xl border border-green-900 bg-[#0c1710] p-3.5 text-green-50 sm:mt-4 sm:px-4">
+    <details open={open} onToggle={(event) => setOpen(event.currentTarget.open)} className="mobile-disclosure rounded-2xl border border-green-900 bg-[#0c1710] p-3.5 text-green-50 sm:px-4">
       <summary className="sm:hidden">
         <span className="flex min-w-0 items-center gap-2.5">
           <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-green-400/10 text-green-300"><ArchiveRestore size={18} /></span>

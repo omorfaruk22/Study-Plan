@@ -99,7 +99,7 @@ export default function DailyGoalsPanel({ logs }: { logs: StudyLog[] }) {
   }
 
   return (
-    <details open={open} onToggle={(event) => setOpen(event.currentTarget.open)} className="mobile-disclosure card mt-3 overflow-hidden p-3.5 sm:mt-4 sm:p-5">
+    <details open={open} onToggle={(event) => setOpen(event.currentTarget.open)} className="mobile-disclosure card overflow-hidden p-3.5 sm:p-5">
       <summary className="sm:hidden">
         <span className="min-w-0">
           <span className="flex items-center gap-2 text-[10px] font-extrabold uppercase tracking-[.12em] text-green-700"><Target size={14} /> Daily focus · 3 track</span>
@@ -126,9 +126,9 @@ export default function DailyGoalsPanel({ logs }: { logs: StudyLog[] }) {
           const progress = goal > 0 ? Math.min(100, actual / goal * 100) : 0;
           return (
             <article key={track.key} className="rounded-2xl border border-green-100 bg-green-50/50 p-3 sm:p-3.5">
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-xs font-extrabold text-green-950">{track.label}</p>
-                <p className="whitespace-nowrap text-[11px] font-bold text-slate-500">{durationLabel(actual)}{goal > 0 ? ` / ${durationLabel(goal)}` : " · লক্ষ্য নেই"}</p>
+              <div className="flex min-w-0 flex-col gap-1.5">
+                <p className="break-words text-xs font-extrabold leading-4 text-green-950">{track.label}</p>
+                <p className="break-words text-[11px] font-bold leading-4 text-slate-500">{durationLabel(actual)}{goal > 0 ? ` / ${durationLabel(goal)}` : " · লক্ষ্য নেই"}</p>
               </div>
               <div className="mt-2 h-2 overflow-hidden rounded-full bg-green-100">
                 <div className={`h-full rounded-full bg-gradient-to-r ${track.tone} transition-[width] duration-500`} style={{ width: `${progress}%` }} />

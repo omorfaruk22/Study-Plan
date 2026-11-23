@@ -174,23 +174,49 @@ export default function ManageWorkspace({ activeTab }: ManageWorkspaceProps) {
       <Header owner />
       <SuccessToast message={message} onClose={closeSuccessToast} />
       {pendingDelete && <DeleteConfirmDialog itemName={pendingDelete.itemName} busy={busy} onCancel={() => setPendingDelete(null)} onConfirm={() => void confirmDelete()} />}
-      <main className="container pb-12 pt-4 sm:pb-16 sm:pt-8">
-        <WorkspaceHeader />
-        <DataBackupTools onRestored={load} />
-        <WorkspaceStats routine={workspace.routine} logs={workspace.logs} tasks={workspace.tasks} />
-        <DailyGoalsPanel logs={workspace.logs} />
-        <ReviewReminderPanel
-          logs={workspace.logs}
-          busy={busy}
-          onReviewed={(log, today, nextReview) => {
-            const { id, ...data } = log;
-            return saveRecord("study_logs", { ...data, last_reviewed_date: today, review_due_date: nextReview }, id, "আবার পড়ার হিসাব হয়েছে; ৩ দিন পরে আবার মনে করাবো।");
-          }}
-        />
-        <WorkspaceTabs activeTab={activeTab} onRefresh={() => void refresh()} />
-        <WorkspaceFeedback error={error} />
+      <main className="container pb-12 pt-5 sm:pb-16 sm:pt-8">
+        <div className="space-y-6 sm:space-y-8">
+          <div className="space-y-2 sm:space-y-3">
+            <WorkspaceHeader />
+            <DataBackupTools onRestored={load} />
+          </div>
 
-<div key={activeTab} className="manage-section-enter">
+          <section aria-labelledby="manage-overview-title" className="space-y-3.5 sm:space-y-4">
+            <div className="flex flex-wrap items-end justify-between gap-2 border-b border-green-500/15 pb-3">
+              <div>
+                <p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-green-500">Overview</p>
+                <h2 id="manage-overview-title" className="mt-1 text-lg font-extrabold text-green-100 sm:text-xl">আজকের অগ্রগতি</h2>
+              </div>
+              <span className="rounded-full border border-green-500/15 bg-green-500/5 px-2.5 py-1 text-[10px] font-semibold text-green-200/70 sm:text-xs">Stats · লক্ষ্য · Review</span>
+            </div>
+            <WorkspaceStats routine={workspace.routine} logs={workspace.logs} tasks={workspace.tasks} />
+            <div className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(300px,.8fr)] xl:items-start">
+              <DailyGoalsPanel logs={workspace.logs} />
+              <ReviewReminderPanel
+                logs={workspace.logs}
+                busy={busy}
+                onReviewed={(log, today, nextReview) => {
+                  const { id, ...data } = log;
+                  return saveRecord("study_logs", { ...data, last_reviewed_date: today, review_due_date: nextReview }, id, "আবার পড়ার হিসাব হয়েছে; ৩ দিন পরে আবার মনে করাবো।");
+                }}
+              />
+            </div>
+          </section>
+
+          <section aria-labelledby="manage-sections-title" className="border-t border-green-500/15 pt-5 sm:pt-6">
+            <div className="flex flex-wrap items-end justify-between gap-2">
+              <div>
+                <p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-green-500">Workspace</p>
+                <h2 id="manage-sections-title" className="mt-1 text-lg font-extrabold text-green-100 sm:text-xl">তথ্য ব্যবস্থাপনা</h2>
+                <p className="mt-1 text-xs text-slate-400 sm:text-sm">রুটিন, পড়ার হিসাব, কাজ ও বিশ্লেষণ—এক জায়গায়।</p>
+              </div>
+            </div>
+            <div className="mt-3 rounded-2xl border border-green-500/15 bg-[#09130c] p-1.5 sm:mt-4 sm:p-2">
+              <WorkspaceTabs activeTab={activeTab} onRefresh={() => void refresh()} />
+            </div>
+            <WorkspaceFeedback error={error} />
+
+            <div key={activeTab} className="manage-section-enter">
         {activeTab === "routine" && <RoutineManager
           routine={workspace.routine}
           subjects={workspace.subjects}
@@ -231,11 +257,13 @@ export default function ManageWorkspace({ activeTab }: ManageWorkspaceProps) {
           onDelete={(id) => requestDelete("study_tasks", id)}
         />}
         {activeTab === "analytics" && <AnalyticsDashboard logs={workspace.logs} tasks={workspace.tasks} subjects={workspace.subjects} />}
-        </div>
+            </div>
+          </section>
 
-        <p className="mt-8 text-center text-xs text-slate-400">
-          <ShieldCheck size={14} className="mr-1 inline" /> Owner-only workspace · Protected by server-side authorization
-        </p>
+          <p className="border-t border-green-500/10 pt-4 text-center text-xs text-slate-500">
+            <ShieldCheck size={14} className="mr-1 inline" /> Owner-only workspace · Protected by server-side authorization
+          </p>
+        </div>
       </main>
     </>
   );

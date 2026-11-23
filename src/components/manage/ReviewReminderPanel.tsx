@@ -39,7 +39,7 @@ export default function ReviewReminderPanel({ logs, busy, onReviewed }: ReviewRe
   const dueCount = reminders.filter((log) => dayDifference(today, log.review_due_date || "") <= 0).length;
 
   return (
-    <details open={open} onToggle={(event) => setOpen(event.currentTarget.open)} className="mobile-disclosure card mt-3 overflow-hidden p-3.5 sm:mt-4 sm:p-5">
+    <details open={open} onToggle={(event) => setOpen(event.currentTarget.open)} className="mobile-disclosure card overflow-hidden p-3.5 sm:p-5">
       <summary className="sm:hidden">
         <span className="min-w-0">
           <span className="flex items-center gap-2 text-[10px] font-extrabold uppercase tracking-[.12em] text-green-700"><CalendarClock size={14} /> Review reminders</span>

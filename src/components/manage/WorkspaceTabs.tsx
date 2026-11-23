@@ -41,7 +41,7 @@ export default function WorkspaceTabs({ activeTab, onRefresh }: WorkspaceTabsPro
   }, [activeTab]);
 
   return (
-    <nav aria-label="Management sections" className="mobile-tab-scroll mt-4 -mx-3 flex gap-2 overflow-x-auto px-3 pb-1 sm:mx-0 sm:mt-7 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0">
+    <nav aria-label="Management sections" className="mobile-tab-scroll flex gap-2 overflow-x-auto px-1 pb-1 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0">
       {tabs.map(({ id, href, label, shortLabel, icon: Icon }) => (
         <Link
           key={id}
