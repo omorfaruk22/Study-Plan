@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
-import { CalendarDays, Save, X } from "lucide-react";
+import { CalendarDays, GraduationCap, Save, X } from "lucide-react";
 import type { RoutineInput, RoutineItem, Subject } from "@/lib/types";
 import { formatTime12 } from "@/lib/time-format";
 import { getDhakaRoutineClock, routineMatchesDay, routineTimeToMinutes, WEEKDAYS } from "@/lib/routine-time";
@@ -20,9 +20,11 @@ import {
 
 const days = ["রবিবার–বৃহস্পতিবার", ...WEEKDAYS];
 const categories = ["কলেজ", "DUET Non-Department", "DUET Department", "Web Development", "ব্যক্তিগত", "জব"];
+const classRoutineCategory = "ক্লাস রুটিন";
 const shortDays = ["রবি", "সোম", "মঙ্গল", "বুধ", "বৃহঃ", "শুক্র", "শনি"];
 
 type RoutineFilter = "today" | "all" | (typeof WEEKDAYS)[number];
+type RoutineEntryMode = "routine" | "class";
 
 type RoutineManagerProps = {
   routine: RoutineItem[];
@@ -32,10 +34,10 @@ type RoutineManagerProps = {
   onDelete: (id: string) => void;
 };
 
-function createEmptyRoutine(sortOrder: number): RoutineInput {
+function createEmptyRoutine(sortOrder: number, category = categories[0]): RoutineInput {
   return {
     day: days[0], start_time: "19:00", end_time: "20:00", title: "",
-    category: categories[0], subject_id: null, subject_name: null, notes: "", sort_order: sortOrder,
+    category, subject_id: null, subject_name: null, notes: "", sort_order: sortOrder,
   };
 }
 
@@ -48,6 +50,7 @@ function getRoutineDayOrder(day: string) {
 export default function RoutineManager({ routine, subjects, busy, onSave, onDelete }: RoutineManagerProps) {
   const [form, setForm] = useState<RoutineInput>(() => createEmptyRoutine(1));
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [entryMode, setEntryMode] = useState<RoutineEntryMode>("routine");
   const [selectedDay, setSelectedDay] = useState<RoutineFilter>("today");
   const [today, setToday] = useState(() => getDhakaRoutineClock().day);
 
@@ -60,7 +63,13 @@ export default function RoutineManager({ routine, subjects, busy, onSave, onDele
 
   function resetForm() {
     setEditingId(null);
-    setForm(createEmptyRoutine(routine.length + 1));
+    setForm(createEmptyRoutine(routine.length + 1, entryMode === "class" ? classRoutineCategory : categories[0]));
+  }
+
+  function changeEntryMode(mode: RoutineEntryMode) {
+    if (editingId) return;
+    setEntryMode(mode);
+    setForm((current) => ({ ...current, category: mode === "class" ? classRoutineCategory : categories[0] }));
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -76,6 +85,7 @@ export default function RoutineManager({ routine, subjects, busy, onSave, onDele
 
   function editItem(item: RoutineItem) {
     setEditingId(item.id);
+    setEntryMode(item.category === classRoutineCategory ? "class" : "routine");
     setForm({
       day: item.day,
       start_time: item.start_time,
@@ -90,7 +100,11 @@ export default function RoutineManager({ routine, subjects, busy, onSave, onDele
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  const visibleRoutine = routine
+  const modeRoutine = routine.filter((item) => entryMode === "class"
+    ? item.category === classRoutineCategory
+    : item.category !== classRoutineCategory);
+
+  const visibleRoutine = modeRoutine
     .filter((item) => {
       if (selectedDay === "all") return true;
       return routineMatchesDay(item.day, selectedDay === "today" ? today : selectedDay);
@@ -120,7 +134,7 @@ export default function RoutineManager({ routine, subjects, busy, onSave, onDele
           <div className="mb-4 flex items-start justify-between gap-3">
             <div>
               <p className="text-[11px] font-bold uppercase tracking-[.14em] text-green-600">Routine planner</p>
-              <h2 className="mt-1 text-lg font-extrabold text-green-950">{editingId ? "রুটিন সম্পাদনা" : "নতুন রুটিন যোগ করো"}</h2>
+              <h2 className="mt-1 text-lg font-extrabold text-green-950">{editingId ? entryMode === "class" ? "ক্লাস রুটিন সম্পাদনা" : "রুটিন সম্পাদনা" : entryMode === "class" ? "ক্লাস রুটিন যোগ করো" : "নতুন রুটিন যোগ করো"}</h2>
               <p className="mt-1 text-xs text-slate-500">সময়, দিন ও বিষয় এক জায়গায় সাজাও।</p>
             </div>
             {editingId && (
@@ -130,25 +144,44 @@ export default function RoutineManager({ routine, subjects, busy, onSave, onDele
             )}
           </div>
 
+          <div className="mb-4 grid grid-cols-2 gap-1.5 rounded-xl bg-slate-50 p-1.5" role="tablist" aria-label="রুটিনের ধরন">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={entryMode === "routine"}
+              disabled={Boolean(editingId)}
+              onClick={() => changeEntryMode("routine")}
+              className={`rounded-lg px-2 py-2 text-xs font-bold transition sm:text-sm ${entryMode === "routine" ? "bg-green-700 text-white" : "text-slate-500 hover:bg-white"} disabled:opacity-50`}
+            >সাধারণ রুটিন</button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={entryMode === "class"}
+              disabled={Boolean(editingId)}
+              onClick={() => changeEntryMode("class")}
+              className={`flex items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-xs font-bold transition sm:text-sm ${entryMode === "class" ? "bg-green-700 text-white" : "text-slate-500 hover:bg-white"} disabled:opacity-50`}
+            ><GraduationCap size={15} /> ক্লাস রুটিন</button>
+          </div>
+
           <form onSubmit={handleSubmit} className="grid gap-3 min-[380px]:grid-cols-2">
-            <FormField label="বার">
+            <FormField label={entryMode === "class" ? "ক্লাসের দিন" : "বার"}>
               <select className="field" value={form.day} onChange={(event) => setForm({ ...form, day: event.target.value })}>
                 {days.map((day) => <option key={day}>{day}</option>)}
               </select>
             </FormField>
-            <FormField label="ক্যাটাগরি">
+            {entryMode === "routine" && <FormField label="ক্যাটাগরি">
               <select className="field" value={form.category} onChange={(event) => setForm({ ...form, category: event.target.value })}>
                 {categories.map((category) => <option key={category}>{category}</option>)}
               </select>
-            </FormField>
+            </FormField>}
             <FormField label="শুরুর সময়">
               <TimeInput value={form.start_time} onChange={(value) => setForm({ ...form, start_time: value })} />
             </FormField>
             <FormField label="শেষের সময়">
               <TimeInput value={form.end_time} onChange={(value) => setForm({ ...form, end_time: value })} />
             </FormField>
-            <FormField label="কাজ / পড়ার নাম" className="min-[380px]:col-span-2">
-              <input required className="field" value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} placeholder="যেমন: Database Management পড়া" />
+            <FormField label={entryMode === "class" ? "ক্লাস / কোর্সের নাম" : "কাজ / পড়ার নাম"} className="min-[380px]:col-span-2">
+              <input required className="field" value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} placeholder={entryMode === "class" ? "যেমন: Mathematics ক্লাস" : "যেমন: Database Management পড়া"} />
             </FormField>
             <FormField label="বিষয় (ঐচ্ছিক)">
               <SubjectField
@@ -162,11 +195,11 @@ export default function RoutineManager({ routine, subjects, busy, onSave, onDele
             <FormField label="ক্রম">
               <input type="number" className="field" value={form.sort_order} onChange={(event) => setForm({ ...form, sort_order: Number(event.target.value) })} />
             </FormField>
-            <FormField label="বিস্তারিত / নোট" className="min-[380px]:col-span-2">
-              <textarea className="field min-h-20" value={form.notes || ""} onChange={(event) => setForm({ ...form, notes: event.target.value })} placeholder="এই সময়ের জন্য ছোট কোনো নোট..." />
+            <FormField label={entryMode === "class" ? "রুম / শিক্ষক / নোট" : "বিস্তারিত / নোট"} className="min-[380px]:col-span-2">
+              <textarea className="field min-h-20" value={form.notes || ""} onChange={(event) => setForm({ ...form, notes: event.target.value })} placeholder={entryMode === "class" ? "রুম নম্বর, শিক্ষক বা অন্য তথ্য" : "এই সময়ের জন্য ছোট কোনো নোট..."} />
             </FormField>
             <button disabled={busy} className="btn btn-primary min-[380px]:col-span-2">
-              <Save size={16} /> {busy ? "সংরক্ষণ হচ্ছে..." : editingId ? "আপডেট করো" : "রুটিন যোগ করো"}
+              <Save size={16} /> {busy ? "সংরক্ষণ হচ্ছে..." : editingId ? "আপডেট করো" : entryMode === "class" ? "ক্লাস যোগ করো" : "রুটিন যোগ করো"}
             </button>
           </form>
         </section>
@@ -177,14 +210,14 @@ export default function RoutineManager({ routine, subjects, busy, onSave, onDele
       <section className="card p-4 sm:p-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-[.14em] text-green-600">Your schedule</p>
+            <p className="text-[11px] font-bold uppercase tracking-[.14em] text-green-600">{entryMode === "class" ? "Class routine" : "Your schedule"}</p>
             <h2 className="mt-1 flex items-center gap-2 text-lg font-extrabold text-green-950">
-              <CalendarDays size={19} className="text-green-500" /> সাপ্তাহিক রুটিন
+              {entryMode === "class" ? <GraduationCap size={19} className="text-green-500" /> : <CalendarDays size={19} className="text-green-500" />} {entryMode === "class" ? "ক্লাসের সময়সূচি" : "সাপ্তাহিক রুটিন"}
             </h2>
             <p className="mt-1 text-xs text-slate-500">দিন বেছে নাও; সব দিনের তালিকা ছোট কার্ডে গুছানো আছে।</p>
           </div>
           <span className="w-fit rounded-full border border-green-500/20 bg-green-500/10 px-3 py-1.5 text-xs font-bold text-green-600">
-            {visibleRoutine.length} / {routine.length} টি রুটিন
+            {visibleRoutine.length} / {modeRoutine.length} {entryMode === "class" ? "টি ক্লাস" : "টি রুটিন"}
           </span>
         </div>
 
@@ -203,7 +236,7 @@ export default function RoutineManager({ routine, subjects, busy, onSave, onDele
         </div>
 
         <div className="mt-3 grid gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
-          {visibleRoutine.length === 0 ? <div className="sm:col-span-2 xl:col-span-3"><EmptyState>এই দিনের জন্য কোনো রুটিন নেই।</EmptyState></div> : visibleRoutine.map((item) => (
+          {visibleRoutine.length === 0 ? <div className="sm:col-span-2 xl:col-span-3"><EmptyState>{entryMode === "class" ? "এই দিনের জন্য কোনো ক্লাস নেই।" : "এই দিনের জন্য কোনো রুটিন নেই।"}</EmptyState></div> : visibleRoutine.map((item) => (
             <article key={item.id} className="group flex min-w-0 items-center gap-2.5 rounded-2xl border border-slate-100 bg-white/5 p-2.5 transition hover:border-green-500/30 hover:bg-green-500/5 sm:gap-3 sm:p-3">
               <div className="flex w-[76px] shrink-0 flex-col items-center justify-center rounded-xl border border-green-500/15 bg-green-500/10 px-1.5 py-2 text-center text-green-600">
                 <span className="whitespace-nowrap text-[10px] font-extrabold tabular-nums">{formatTime12(item.start_time)}</span>

@@ -195,7 +195,14 @@ export default function ManageWorkspace({ activeTab }: ManageWorkspaceProps) {
           routine={workspace.routine}
           subjects={workspace.subjects}
           busy={busy}
-          onSave={(item: RoutineInput, id?: string) => saveRecord("weekly_routine", item, id, id ? "রুটিন আপডেট হয়েছে।" : "নতুন রুটিন যোগ হয়েছে।")}
+          onSave={(item: RoutineInput, id?: string) => saveRecord(
+            "weekly_routine",
+            item,
+            id,
+            item.category === "ক্লাস রুটিন"
+              ? id ? "ক্লাস রুটিন আপডেট হয়েছে।" : "নতুন ক্লাস যোগ হয়েছে।"
+              : id ? "রুটিন আপডেট হয়েছে।" : "নতুন রুটিন যোগ হয়েছে।",
+          )}
           onDelete={(id) => requestDelete("weekly_routine", id)}
         />}
         {activeTab === "academic" && <AcademicManager

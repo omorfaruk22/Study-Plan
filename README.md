@@ -13,7 +13,7 @@ A Next.js + TypeScript personal study management app backed by **MongoDB Atlas**
 
 ### Owner-only Study Management
 - **Owner and admin login** supports verified Google sign-in and a separate email/password form, both restricted to the configured owner email.
-- **Weekly routine manager** supports adding, editing, and deleting schedule items, with a live current-routine panel.
+- **Weekly and class routine manager** supports adding, editing, and deleting both general schedule items and class/course sessions, with a live current-routine panel.
 - **Separate Academic and DUET sections** let the owner manage subjects and study logs; DUET is split into Department and Non-Department.
 - **Assignments and exam manager** tracks due dates, priorities, statuses, subjects, and notes.
 - **Automatic stopwatch logging:** enter the subject/topic, start studying, then finish the timer to save elapsed minutes and date automatically. Pause and resume are supported; the session survives management-page switches in the same browser.
@@ -35,7 +35,7 @@ A Next.js + TypeScript personal study management app backed by **MongoDB Atlas**
 |---|---|
 | / | Public home, live clocks, study totals, routine, and subjects |
 | /login | Google owner sign-in |
-| /manage | Weekly routine and current routine view |
+| /manage | Weekly routine, class timetable, and current routine view |
 | /manage/academic | Academic subjects and study logs |
 | /manage/duet | DUET Department and Non-Department subjects and study logs |
 | /manage/tasks | Assignments and exams |
