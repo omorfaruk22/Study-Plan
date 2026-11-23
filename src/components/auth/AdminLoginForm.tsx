@@ -36,8 +36,8 @@ export default function AdminLoginForm({ enabled }: { enabled: boolean }) {
         />
       </label>
       {state.error && <p role="alert" className="text-sm font-semibold text-red-600">{state.error}</p>}
-      <button className="btn btn-primary mt-1 w-full" disabled={pending}>
-        <LogIn size={17} /> {pending ? "লগইন হচ্ছে…" : "Admin Login"}
+      <button aria-label={pending ? "লগইন হচ্ছে" : "Admin Login"} className="btn btn-primary mt-1 w-full" disabled={pending}>
+        <LogIn size={18} aria-hidden="true" />
       </button>
     </form>
   );

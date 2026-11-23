@@ -20,8 +20,8 @@ export default function LoginPanel() {
             "use server";
             await signIn("google", { redirectTo: "/manage" });
           }} className="mt-4">
-            <button className="btn btn-plain w-full border-green-500/25">
-              <Chrome size={18} /> Sign in with Google
+            <button aria-label="Sign in with Google" className="btn btn-plain w-full border-green-500/25">
+              <Chrome size={19} aria-hidden="true" />
             </button>
           </form>
 
