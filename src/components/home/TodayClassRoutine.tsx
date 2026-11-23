@@ -2,8 +2,15 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { ChevronRight, GraduationCap } from "lucide-react";
+import { Hind_Siliguri } from "next/font/google";
 import type { RoutineItem } from "@/lib/types";
 import { formatTimeRange, getDhakaRoutineClock, routineMatchesDay, routineTimeToMinutes, WEEKDAYS } from "@/lib/routine-time";
+
+const routineFont = Hind_Siliguri({
+  subsets: ["bengali", "latin"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+});
 
 type TodayClassRoutineProps = {
   routine: RoutineItem[];
@@ -37,12 +44,12 @@ export default function TodayClassRoutine({ routine, loading }: TodayClassRoutin
     }), [routine, selectedDay]);
 
   return (
-    <section aria-label={`${selectedDay} এর ক্লাস রুটিন`} className="card min-h-[184px] min-w-0 flex-1 p-4 md:mt-3">
+    <section aria-label={`${selectedDay} এর ক্লাস রুটিন`} className={`${routineFont.className} card min-w-0 flex-1 p-3.5 sm:p-4`}>
       <div className="flex items-center justify-between gap-2">
-        <h2 className="flex min-w-0 items-center gap-2 text-base font-extrabold text-green-950 sm:text-lg">
-          <GraduationCap size={18} className="shrink-0 text-green-600" />
+        <h2 className="flex min-w-0 items-center gap-2 text-lg font-bold text-green-950 sm:text-xl">
+          <GraduationCap size={20} className="shrink-0 text-green-600" />
           <span className="shrink-0">{dayOffset === 0 ? "আজকের ক্লাস" : "ক্লাস রুটিন"}</span>
-          <span className="truncate text-sm font-bold text-green-700 sm:text-base">{selectedDay}</span>
+          <span className="truncate text-base font-semibold text-green-700 sm:text-lg">{selectedDay}</span>
         </h2>
         <button
           type="button"
@@ -56,9 +63,9 @@ export default function TodayClassRoutine({ routine, loading }: TodayClassRoutin
       </div>
 
       {loading ? (
-        <p className="mt-3 text-sm text-slate-500">ক্লাসের সময়সূচি লোড হচ্ছে...</p>
+        <p className="mt-3 text-base text-slate-500">ক্লাসের সময়সূচি লোড হচ্ছে...</p>
       ) : classes.length === 0 ? (
-        <p className="mt-3 rounded-xl border border-dashed border-green-500/20 px-3 py-2.5 text-sm text-slate-500">
+        <p className="mt-3 rounded-xl border border-dashed border-green-500/20 px-3 py-2.5 text-base text-slate-500">
           {dayOffset === 0 ? "আজ কোনো ক্লাস নেই।" : `${selectedDay} কোনো ক্লাস নেই।`}
         </p>
       ) : (
@@ -66,16 +73,16 @@ export default function TodayClassRoutine({ routine, loading }: TodayClassRoutin
           {classes.map((item) => (
             <li key={item.id} className="min-w-0 rounded-xl border border-green-500/15 bg-green-500/5 px-3 py-2">
               <div className="flex items-center justify-between gap-2">
-                <span className="whitespace-nowrap text-[11px] font-extrabold tabular-nums text-green-700 sm:text-xs">
+                <span className="whitespace-nowrap text-sm font-semibold tabular-nums text-green-700 sm:text-base">
                   {formatTimeRange(item.start_time, item.end_time)}
                 </span>
                 {item.subject_name && (
-                  <span className="shrink-0 rounded-full bg-green-500/10 px-1.5 py-0.5 text-[10px] font-bold text-green-700 sm:text-[11px]">
+                  <span className="shrink-0 rounded-full bg-green-500/10 px-2 py-0.5 text-xs font-semibold text-green-700 sm:text-sm">
                     {item.subject_name}
                   </span>
                 )}
               </div>
-              <p className="mt-1 line-clamp-2 text-xs font-bold leading-4 text-slate-700 sm:text-sm" title={item.title}>{item.title}</p>
+              <p className="mt-1 line-clamp-2 text-base font-semibold leading-5 text-slate-700 sm:text-lg sm:leading-6" title={item.title}>{item.title}</p>
             </li>
           ))}
         </ul>
