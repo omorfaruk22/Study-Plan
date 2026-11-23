@@ -17,6 +17,15 @@ type TodayClassRoutineProps = {
   loading: boolean;
 };
 
+function isClassInProgress(item: RoutineItem, currentMinutes: number) {
+  const start = routineTimeToMinutes(item.start_time);
+  const end = routineTimeToMinutes(item.end_time);
+  if (start === null || end === null || start === end) return false;
+  return start < end
+    ? currentMinutes >= start && currentMinutes < end
+    : currentMinutes >= start || currentMinutes < end;
+}
+
 export default function TodayClassRoutine({ routine, loading }: TodayClassRoutineProps) {
   const [today, setToday] = useState(() => getDhakaRoutineClock());
   const [dayOffset, setDayOffset] = useState(0);
@@ -70,21 +79,38 @@ export default function TodayClassRoutine({ routine, loading }: TodayClassRoutin
         </p>
       ) : (
         <ul className="mt-3 grid grid-cols-[repeat(auto-fit,minmax(130px,1fr))] gap-2">
-          {classes.map((item) => (
-            <li key={item.id} className="min-w-0 rounded-xl border border-green-500/15 bg-green-500/5 px-2.5 py-1.5">
-              <div className="flex items-center justify-between gap-1">
-                <span className="whitespace-nowrap text-[11px] font-semibold tabular-nums text-green-700 sm:text-xs">
-                  {item.start_time}–{item.end_time}
-                </span>
-                {item.subject_name && (
-                  <span className="shrink-0 rounded-full bg-green-500/10 px-1 py-0.5 text-[10px] font-medium text-green-700">
-                    {item.subject_name}
+          {classes.map((item) => {
+            const isActive = dayOffset === 0 && isClassInProgress(item, today.minutes);
+
+            return (
+              <li
+                key={item.id}
+                aria-current={isActive ? "true" : undefined}
+                aria-label={isActive ? `${item.title} · এখন চলছে` : item.title}
+                className={`min-w-0 rounded-xl border px-2.5 py-1.5 transition-colors duration-300 ${isActive
+                  ? "border-green-400/60 bg-green-500/15 shadow-[0_0_18px_rgba(34,197,94,0.18)] ring-1 ring-green-400/20"
+                  : "border-green-500/15 bg-green-500/5"}`}
+              >
+                <div className="flex items-center justify-between gap-1">
+                  <span className="whitespace-nowrap text-[11px] font-semibold tabular-nums text-green-700 sm:text-xs">
+                    {item.start_time}–{item.end_time}
                   </span>
-                )}
-              </div>
-              <p className="mt-1 line-clamp-3 text-sm font-medium leading-5 text-slate-700 sm:text-base" title={item.title}>{item.title}</p>
-            </li>
-          ))}
+                  {item.subject_name && (
+                    <span className="shrink-0 rounded-full bg-green-500/10 px-1 py-0.5 text-[10px] font-medium text-green-700">
+                      {item.subject_name}
+                    </span>
+                  )}
+                </div>
+                <div className="mt-1 flex min-w-0 items-start gap-1.5">
+                  {isActive && (
+                    <span aria-hidden="true" className="mt-1.5 h-2 w-2 shrink-0 animate-pulse rounded-full bg-green-400 shadow-[0_0_10px_rgba(74,222,128,0.85)]" />
+                  )}
+                  <p className="line-clamp-3 min-w-0 text-sm font-medium leading-5 text-slate-700 sm:text-base" title={item.title}>{item.title}</p>
+                  {isActive && <span className="sr-only">এখন চলছে</span>}
+                </div>
+              </li>
+            );
+          })}
         </ul>
       )}
     </section>
