@@ -38,7 +38,7 @@ button { cursor:pointer; }
 }
 .login-stage:has(.login-panel:hover)::before,
 .login-stage:has(.login-panel:focus-within)::before {
-  filter:blur(30px);
+  filter:blur(40px);
   opacity:1;
   scale:1.13;
 }
