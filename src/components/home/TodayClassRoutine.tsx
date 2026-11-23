@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ChevronRight, GraduationCap } from "lucide-react";
 import { Hind_Siliguri } from "next/font/google";
 import type { RoutineItem } from "@/lib/types";
-import { formatTimeRange, getDhakaRoutineClock, routineMatchesDay, routineTimeToMinutes, WEEKDAYS } from "@/lib/routine-time";
+import { getDhakaRoutineClock, routineMatchesDay, routineTimeToMinutes, WEEKDAYS } from "@/lib/routine-time";
 
 const routineFont = Hind_Siliguri({
   subsets: ["bengali", "latin"],
@@ -69,20 +69,20 @@ export default function TodayClassRoutine({ routine, loading }: TodayClassRoutin
           {dayOffset === 0 ? "আজ কোনো ক্লাস নেই।" : `${selectedDay} কোনো ক্লাস নেই।`}
         </p>
       ) : (
-        <ul className="mt-3 grid grid-cols-[repeat(auto-fit,minmax(210px,1fr))] gap-2">
+        <ul className="mt-3 grid grid-cols-[repeat(auto-fit,minmax(130px,1fr))] gap-2">
           {classes.map((item) => (
-            <li key={item.id} className="min-w-0 rounded-xl border border-green-500/15 bg-green-500/5 px-3 py-2">
-              <div className="flex items-center justify-between gap-2">
-                <span className="whitespace-nowrap text-sm font-semibold tabular-nums text-green-700 sm:text-base">
-                  {formatTimeRange(item.start_time, item.end_time)}
+            <li key={item.id} className="min-w-0 rounded-xl border border-green-500/15 bg-green-500/5 px-2.5 py-1.5">
+              <div className="flex items-center justify-between gap-1">
+                <span className="whitespace-nowrap text-[11px] font-semibold tabular-nums text-green-700 sm:text-xs">
+                  {item.start_time}–{item.end_time}
                 </span>
                 {item.subject_name && (
-                  <span className="shrink-0 rounded-full bg-green-500/10 px-2 py-0.5 text-xs font-semibold text-green-700 sm:text-sm">
+                  <span className="shrink-0 rounded-full bg-green-500/10 px-1 py-0.5 text-[10px] font-medium text-green-700">
                     {item.subject_name}
                   </span>
                 )}
               </div>
-              <p className="mt-1 line-clamp-2 text-base font-medium leading-5 text-slate-700 sm:text-lg sm:leading-6" title={item.title}>{item.title}</p>
+              <p className="mt-1 line-clamp-3 text-sm font-medium leading-5 text-slate-700 sm:text-base" title={item.title}>{item.title}</p>
             </li>
           ))}
         </ul>
