@@ -9,7 +9,7 @@ export default function LoginPanel() {
     <main className="login-stage relative isolate grid min-h-[calc(100vh-72px)] place-items-center overflow-hidden py-10 sm:py-12">
       <div className="container relative z-10 grid w-full place-items-center">
         <section className="login-panel card w-full max-w-md p-6 animate-rise sm:p-8">
-          <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-green-100 text-green-800">
+          <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-green-200 text-green-900">
             <BookOpen size={27} />
           </div>
           <h1 className="mt-4 text-center text-2xl font-extrabold text-green-950">Owner Login</h1>
