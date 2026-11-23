@@ -22,6 +22,45 @@ button { cursor:pointer; }
 .manage-section-enter { animation:manage-section-enter .24s ease-out both; }
 @media (prefers-reduced-motion: reduce) { .manage-section-enter { animation:none; } }
 
+.login-stage::before {
+  content:"";
+  position:absolute;
+  z-index:-1;
+  inset:-12%;
+  pointer-events:none;
+  background:
+    radial-gradient(ellipse 34rem 26rem at 50% 48%, rgba(34,197,94,.18), transparent 74%),
+    radial-gradient(ellipse 47rem 36rem at 50% 52%, rgba(16,185,129,.08), transparent 80%);
+  filter:blur(20px);
+  opacity:.78;
+  scale:.92;
+  transition:opacity .65s ease, scale .65s ease, filter .65s ease;
+}
+.login-stage:has(.login-panel:hover)::before,
+.login-stage:has(.login-panel:focus-within)::before {
+  filter:blur(30px);
+  opacity:1;
+  scale:1.13;
+}
+.login-panel {
+  translate:0 0;
+  scale:1;
+  transition:translate .3s ease, scale .3s ease, box-shadow .3s ease, border-color .3s ease;
+}
+.login-panel:hover,
+.login-panel:focus-within {
+  translate:0 -6px;
+  scale:1.015;
+  border-color:rgba(74,222,128,.42);
+  box-shadow:0 18px 48px rgba(0,0,0,.36), 0 0 42px rgba(34,197,94,.22);
+}
+@media (prefers-reduced-motion: reduce) {
+  .login-stage::before,
+  .login-panel { transition:none; }
+  .login-panel:hover,
+  .login-panel:focus-within { translate:0 0; scale:1; }
+}
+
 /* Native disclosures keep the mobile manager compact while leaving desktop panels open. */
 .mobile-disclosure > summary { display:flex; align-items:center; justify-content:space-between; gap:12px; cursor:pointer; list-style:none; }
 .mobile-disclosure > summary::-webkit-details-marker { display:none; }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { KeyRound, LogIn } from "lucide-react";
+import { LogIn } from "lucide-react";
 import { adminLoginAction, type AdminLoginState } from "@/app/login/actions";
 
 const initialState: AdminLoginState = { error: "" };
@@ -41,9 +41,6 @@ export default function AdminLoginForm({ enabled }: { enabled: boolean }) {
       <button className="btn btn-primary mt-1 w-full" disabled={pending}>
         <LogIn size={17} /> {pending ? "লগইন হচ্ছে…" : "Admin Login"}
       </button>
-      <p className="flex items-start gap-1.5 text-[11px] leading-5 text-slate-500">
-        <KeyRound size={13} className="mt-0.5 shrink-0" /> Admin password server-side environment variable-এ রাখা হয়।
-      </p>
     </form>
   );
 }
