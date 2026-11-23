@@ -12,7 +12,7 @@ A Next.js + TypeScript personal study management app backed by **MongoDB Atlas**
 - **12-hour time display**, black-and-green visual theme, responsive mobile layout, and soft management-page transitions.
 
 ### Owner-only Study Management
-- **Google Owner Login** protects management pages and APIs using the configured owner email.
+- **Owner and admin login** supports verified Google sign-in and a separate email/password form, both restricted to the configured owner email.
 - **Weekly routine manager** supports adding, editing, and deleting schedule items, with a live current-routine panel.
 - **Separate Academic and DUET sections** let the owner manage subjects and study logs; DUET is split into Department and Non-Department.
 - **Assignments and exam manager** tracks due dates, priorities, statuses, subjects, and notes.
@@ -75,6 +75,7 @@ AUTH_SECRET=generate-a-long-random-secret
 AUTH_GOOGLE_ID=your-google-oauth-client-id
 AUTH_GOOGLE_SECRET=your-google-oauth-client-secret
 OWNER_EMAIL=omorfaruk22571@gmail.com
+OWNER_PASSWORD=generate-a-long-random-admin-password
 ```
 
 Generate `AUTH_SECRET` with:
@@ -82,6 +83,8 @@ Generate `AUTH_SECRET` with:
 ```bash
 openssl rand -base64 32
 ```
+
+Use a separate random value for `OWNER_PASSWORD`. Keep it only in `.env.local` and your deployment's server-side environment variables. Google sign-in remains available if `OWNER_PASSWORD` is not configured.
 
 All of these are server-side variables. Do not prefix them with `NEXT_PUBLIC_`. Never expose the MongoDB connection string or Google Client Secret in browser code, GitHub, or Vercel client bundles.
 
@@ -103,14 +106,14 @@ The first successful owner visit to /manage seeds the starter weekly routine onl
 ## 5. Deploy to Vercel
 1. Push the project to a private GitHub repository (recommended, because project configuration and personal study app details are included).
 2. Import the repository into Vercel.
-3. Add all five environment variables from `.env.local` in Vercel Project Settings → Environment Variables.
+3. Add all seven environment variables from `.env.local` in Vercel Project Settings → Environment Variables.
 4. Deploy the project.
 5. Add the production OAuth callback URL `https://YOUR-VERCEL-DOMAIN/api/auth/callback/google` to your Google OAuth Client's Authorized redirect URIs.
 6. Redeploy after changing environment variables.
 
 ## Access control
 
-| Feature / data | Visitor | Owner Google account |
+| Feature / data | Visitor | Owner login (Google / Admin) |
 |---|---:|---:|
 | Published weekly routine | View | View / Add / Edit / Delete |
 | Public subject list | View | View / Add / Edit / Delete |
@@ -120,10 +123,10 @@ The first successful owner visit to /manage seeds the starter weekly routine onl
 | Assignments and exam tasks | No access | Full access |
 | Management APIs | No access | Authorized access |
 
-The owner email is checked in the Auth.js Google sign-in callback, in the protected `/manage` layout, and again on every owner API request. Data operations run on the server. MongoDB has no client-side connection string.
+The owner email is checked by both Auth.js sign-in methods, in the protected `/manage` layout, and again on every owner API request. Data operations run on the server. MongoDB has no client-side connection string.
 
 ## Important notes
-- This app uses MongoDB for study data. Auth.js uses a signed JWT session; Google OAuth user access is restricted to the configured owner account.
+- This app uses MongoDB for study data. Auth.js uses a signed JWT session; both Google OAuth and Admin Login are restricted to the configured owner account.
 - Public visitors cannot read daily study logs, task notes or other owner-only collections through the app's public endpoints.
 - The public routine API exposes only the schedule fields (day, time, title, category and subject link); internal routine notes, daily logs, task notes and other personal records are not returned to visitors.
 - Back up your MongoDB database periodically.
