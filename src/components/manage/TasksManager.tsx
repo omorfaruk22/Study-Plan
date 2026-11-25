@@ -83,7 +83,7 @@ export default function TasksManager({ tasks, subjects, busy, onSave, onDelete }
               onChange={(value) => setForm({ ...form, ...resolveSubjectInput(subjects, value) })}
             />
           </FormField>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2">
             <FormField label="ধরন">
               <select className="field" value={form.task_type} onChange={(event) => setForm({ ...form, task_type: event.target.value })}>
                 {taskTypes.map((taskType) => <option key={taskType}>{taskType}</option>)}
@@ -93,7 +93,7 @@ export default function TasksManager({ tasks, subjects, busy, onSave, onDelete }
               <input type="date" className="field" value={form.due_date || ""} onChange={(event) => setForm({ ...form, due_date: event.target.value || null })} />
             </FormField>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2">
             <FormField label="অগ্রাধিকার">
               <select className="field" value={form.priority} onChange={(event) => setForm({ ...form, priority: event.target.value })}>
                 {priorities.map((priority) => <option key={priority}>{priority}</option>)}

@@ -171,8 +171,8 @@ export default function StudyStopwatch({ entry, canStart, busy, onFinish, onSess
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <time className="font-mono text-2xl font-black tabular-nums tracking-wider text-green-950 sm:text-3xl">{formatElapsed(elapsed)}</time>
+        <div className="flex min-w-0 flex-wrap items-center justify-end gap-2 sm:gap-3">
+          <time className="shrink-0 font-mono text-xl font-black tabular-nums tracking-tight text-green-950 sm:text-3xl sm:tracking-wider">{formatElapsed(elapsed)}</time>
           {!storageReady ? (
             <span className="text-xs text-slate-500">Timer খুঁজছি...</span>
           ) : !session ? (

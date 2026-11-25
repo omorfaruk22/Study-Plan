@@ -78,7 +78,7 @@ export default function TodayClassRoutine({ routine, loading }: TodayClassRoutin
           {dayOffset === 0 ? "আজ কোনো ক্লাস নেই।" : `${selectedDay} কোনো ক্লাস নেই।`}
         </p>
       ) : (
-        <ul className="mt-3 grid grid-cols-[repeat(auto-fit,minmax(130px,1fr))] gap-2">
+        <ul className="mt-3 grid grid-cols-1 gap-2 min-[420px]:grid-cols-[repeat(auto-fit,minmax(150px,1fr))]">
           {classes.map((item) => {
             const isActive = dayOffset === 0 && isClassInProgress(item, today.minutes);
 
@@ -96,7 +96,7 @@ export default function TodayClassRoutine({ routine, loading }: TodayClassRoutin
                     {item.start_time}–{item.end_time}
                   </span>
                   {item.subject_name && (
-                    <span className="shrink-0 rounded-full bg-green-500/10 px-1 py-0.5 text-[10px] font-medium text-green-700">
+                    <span className="max-w-[96px] shrink rounded-full bg-green-500/10 px-1 py-0.5 text-[10px] font-medium text-green-700 truncate">
                       {item.subject_name}
                     </span>
                   )}

@@ -122,7 +122,7 @@ export default function StudyLogsManager({ logs, subjects, studyTrack, busy, onS
           <FormField label="পরিকল্পিত মিনিট (ঐচ্ছিক)">
             <input type="number" min="0" className="field" value={form.planned_minutes} onChange={(event) => setForm({ ...form, planned_minutes: Number(event.target.value) })} />
           </FormField>
-          <div className={`grid ${editingId ? "grid-cols-2" : "grid-cols-1"} gap-3`}>
+          <div className={`grid ${editingId ? "grid-cols-1 min-[420px]:grid-cols-2" : "grid-cols-1"} gap-3`}>
             {editingId && (
               <FormField label="অবস্থা">
                 <select className="field" value={form.status} onChange={(event) => setForm({ ...form, status: event.target.value })}>

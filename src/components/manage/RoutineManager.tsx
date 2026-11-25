@@ -163,7 +163,7 @@ export default function RoutineManager({ routine, subjects, busy, onSave, onDele
             ><GraduationCap size={15} /> ক্লাস রুটিন</button>
           </div>
 
-          <form onSubmit={handleSubmit} className="grid gap-3 min-[380px]:grid-cols-2">
+          <form onSubmit={handleSubmit} className="grid gap-3 min-[520px]:grid-cols-2">
             <FormField label={entryMode === "class" ? "ক্লাসের দিন" : "বার"}>
               <select className="field" value={form.day} onChange={(event) => setForm({ ...form, day: event.target.value })}>
                 {days.map((day) => <option key={day}>{day}</option>)}
@@ -180,7 +180,7 @@ export default function RoutineManager({ routine, subjects, busy, onSave, onDele
             <FormField label="শেষের সময়">
               <TimeInput value={form.end_time} onChange={(value) => setForm({ ...form, end_time: value })} />
             </FormField>
-            <FormField label={entryMode === "class" ? "ক্লাস / কোর্সের নাম" : "কাজ / পড়ার নাম"} className="min-[380px]:col-span-2">
+            <FormField label={entryMode === "class" ? "ক্লাস / কোর্সের নাম" : "কাজ / পড়ার নাম"} className="min-[520px]:col-span-2">
               <input required className="field" value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} placeholder={entryMode === "class" ? "যেমন: Mathematics ক্লাস" : "যেমন: Database Management পড়া"} />
             </FormField>
             <FormField label="বিষয় (ঐচ্ছিক)">
@@ -195,10 +195,10 @@ export default function RoutineManager({ routine, subjects, busy, onSave, onDele
             <FormField label="ক্রম">
               <input type="number" className="field" value={form.sort_order} onChange={(event) => setForm({ ...form, sort_order: Number(event.target.value) })} />
             </FormField>
-            <FormField label={entryMode === "class" ? "রুম / শিক্ষক / নোট" : "বিস্তারিত / নোট"} className="min-[380px]:col-span-2">
+            <FormField label={entryMode === "class" ? "রুম / শিক্ষক / নোট" : "বিস্তারিত / নোট"} className="min-[520px]:col-span-2">
               <textarea className="field min-h-20" value={form.notes || ""} onChange={(event) => setForm({ ...form, notes: event.target.value })} placeholder={entryMode === "class" ? "রুম নম্বর, শিক্ষক বা অন্য তথ্য" : "এই সময়ের জন্য ছোট কোনো নোট..."} />
             </FormField>
-            <button disabled={busy} className="btn btn-primary min-[380px]:col-span-2">
+            <button disabled={busy} className="btn btn-primary min-[520px]:col-span-2">
               <Save size={16} /> {busy ? "সংরক্ষণ হচ্ছে..." : editingId ? "আপডেট করো" : entryMode === "class" ? "ক্লাস যোগ করো" : "রুটিন যোগ করো"}
             </button>
           </form>

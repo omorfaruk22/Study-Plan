@@ -64,7 +64,7 @@ export default function LiveClocks() {
     : "স্থানীয় সময়";
 
   return (
-    <section aria-label={`${location} এর বর্তমান সময়`} className="card inline-flex max-w-full items-center gap-4 overflow-hidden p-3.5 sm:gap-6 sm:p-4">
+    <section aria-label={`${location} এর বর্তমান সময়`} className="card inline-flex max-w-full items-center gap-3 overflow-hidden p-3 sm:gap-6 sm:p-4">
       <div className="min-w-0">
         <p className="flex max-w-[190px] items-center gap-1.5 truncate text-[10px] font-extrabold uppercase tracking-[.12em] text-green-500">
           <Clock3 size={13} className="shrink-0" /> Live · {location}
