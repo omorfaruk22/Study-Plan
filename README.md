@@ -12,7 +12,7 @@ A Next.js + TypeScript personal study management app backed by **MongoDB Atlas**
 - **12-hour time display**, black-and-green visual theme, responsive mobile layout, and soft management-page transitions.
 
 ### Owner-only Study Management
-- **Owner and admin login** supports verified Google sign-in and a separate email/password form, both restricted to the configured owner email.
+- **Owner and admin login** supports verified Google sign-in and a separate email/password form, both restricted to the configured owner email. The secure session cookie is persistent for 30 days so the owner can reopen the app without signing in each time, unless the browser clears site data.
 - **Weekly and class routine manager** supports adding, editing, and deleting both general schedule items and class/course sessions, with a live current-routine panel.
 - **Separate Academic and DUET sections** let the owner manage subjects and study logs; DUET is split into Department and Non-Department.
 - **Assignments and exam manager** tracks due dates, priorities, statuses, subjects, and notes.

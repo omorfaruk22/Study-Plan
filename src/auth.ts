@@ -5,6 +5,7 @@ import Credentials from "next-auth/providers/credentials";
 
 const ownerEmail = (process.env.OWNER_EMAIL || "").trim().toLowerCase();
 const ownerPassword = process.env.OWNER_PASSWORD || "";
+const sessionMaxAge = 60 * 60 * 24 * 30;
 
 function matchesOwnerPassword(candidate: string, expected: string) {
   const candidateDigest = createHash("sha256").update(candidate).digest();
@@ -30,7 +31,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   pages: { signIn: "/login" },
-  session: { strategy: "jwt", maxAge: 60 * 60 * 24 * 14 },
+  session: { strategy: "jwt", maxAge: sessionMaxAge },
+  cookies: {
+    sessionToken: {
+      options: { maxAge: sessionMaxAge },
+    },
+  },
   trustHost: true,
   callbacks: {
     async signIn({ user, account, profile }) {
