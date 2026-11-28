@@ -308,11 +308,7 @@ export default function ManageWorkspace({ activeTab, profile }: ManageWorkspaceP
               <span>{currentSection?.description}</span>
             </header>
             <div key={activeTab} className="manage-section-enter">
-              {activeTab === "calendar" && <CalendarWorkspace
-                logs={workspace.logs}
-                routine={workspace.routine}
-                subjects={workspace.subjects}
-              />}
+              {activeTab === "calendar" && <CalendarWorkspace logs={workspace.logs} />}
               {activeTab === "routine" && <RoutineManager
                 routine={workspace.routine}
                 subjects={workspace.subjects}
