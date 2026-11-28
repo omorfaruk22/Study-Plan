@@ -1040,6 +1040,7 @@ button { cursor:pointer; }
 .planner-mobile-close { display: none; }
 .planner-shell :is(a, button, input, select, textarea):focus-visible { outline: 3px solid rgba(189,255,99,.78); outline-offset: 3px; }
 
+.planner-calendar-workspace .planner-routine-live { min-height: 100%; }
 .planner-progress-workspace { display: grid; gap: 16px; }
 .planner-progress-header {
   display: flex;
