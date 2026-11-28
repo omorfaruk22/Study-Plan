@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { BookOpen, CalendarDays, Clock3, LibraryBig, type LucideIcon } from "lucide-react";
+import { BookOpen, CalendarDays, Clock3, GraduationCap, LibraryBig, type LucideIcon } from "lucide-react";
 import type { PublicStudyStats as StudyStats } from "@/lib/types";
 
 type PublicStudyStatsProps = {
@@ -66,12 +66,18 @@ function AnimatedMetricValue({ value, type, loading, dataUnavailable }: { value:
 }
 
 export default function PublicStudyStats({ stats, subjectCount, routineCount, loading, dataUnavailable }: PublicStudyStatsProps) {
-  const totalMinutes = stats.academic_minutes + stats.duet_department_minutes + stats.duet_non_department_minutes;
+  const duetMinutes = stats.duet_department_minutes + stats.duet_non_department_minutes;
+  // total_minutes is deliberately maintained by the API for every persisted
+  // log, including old records that do not yet have a track field.
+  const totalMinutes = Number.isFinite(stats.total_minutes)
+    ? Math.max(0, stats.total_minutes)
+    : stats.academic_minutes + duetMinutes;
   const items: Metric[] = [
     { label: "বিষয় সমূহ", detail: "প্রকাশিত বিষয়", value: subjectCount, type: "count", icon: BookOpen, tone: "subjects" },
     { label: "সাপ্তাহিক রুটিন", detail: "লাইভ সময়সূচি", value: routineCount, type: "count", icon: CalendarDays, tone: "routine" },
     { label: "একাডেমিক পড়া", detail: "সেভ করা সময়", value: stats.academic_minutes, type: "minutes", icon: LibraryBig, tone: "academic" },
-    { label: "মোট পড়ার সময়", detail: "সব track মিলিয়ে", value: totalMinutes, type: "minutes", icon: Clock3, tone: "time" },
+    { label: "DUET পড়া", detail: "Department + Non-Department", value: duetMinutes, type: "minutes", icon: GraduationCap, tone: "duet" },
+    { label: "মোট পড়ার সময়", detail: "সব সেভ করা session", value: totalMinutes, type: "minutes", icon: Clock3, tone: "time" },
   ];
 
   return (

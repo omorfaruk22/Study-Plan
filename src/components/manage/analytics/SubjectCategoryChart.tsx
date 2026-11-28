@@ -1,16 +1,17 @@
-import type { Subject, SubjectCategory } from "@/lib/types";
+import type { StudyTrack, Subject } from "@/lib/types";
 import ChartCard from "@/components/manage/analytics/ChartCard";
+import { getSubjectStudyTrack } from "@/lib/study-track";
 
-const sections: { category: SubjectCategory; label: string }[] = [
-  { category: "Academic", label: "একাডেমিক" },
-  { category: "DUET Department", label: "DUET Department" },
-  { category: "DUET Non-Department", label: "DUET Non-Department" },
+const sections: { track: StudyTrack; label: string }[] = [
+  { track: "academic", label: "একাডেমিক" },
+  { track: "duet_department", label: "DUET Department" },
+  { track: "duet_non_department", label: "DUET Non-Department" },
 ];
 
 export default function SubjectCategoryChart({ subjects }: { subjects: Subject[] }) {
   const totals = sections.map((section) => ({
     ...section,
-    count: subjects.filter((subject) => subject.category === section.category).length,
+    count: subjects.filter((subject) => getSubjectStudyTrack(subject) === section.track).length,
   }));
   const maxCount = Math.max(...totals.map((item) => item.count), 1);
 
@@ -18,7 +19,7 @@ export default function SubjectCategoryChart({ subjects }: { subjects: Subject[]
     <ChartCard title="বিভাগ অনুযায়ী বিষয়" description="প্রতিটি পেজে তোমার যোগ করা subject-এর আসল সংখ্যা।">
       <div className="space-y-3">
         {totals.map((item) => (
-          <div key={item.category}>
+          <div key={item.track}>
             <div className="mb-1 flex items-center justify-between gap-3 text-xs">
               <span className="min-w-0 break-words font-semibold text-slate-700">{item.label}</span>
               <span className="shrink-0 font-bold text-slate-500">{item.count}টি</span>

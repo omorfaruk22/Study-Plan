@@ -3,6 +3,7 @@
 import { BookOpenCheck } from "lucide-react";
 import StudyLogsManager from "@/components/manage/StudyLogsManager";
 import SubjectsManager from "@/components/manage/SubjectsManager";
+import { getSubjectStudyTrack, resolveStudyTrack } from "@/lib/study-track";
 import type { StudyLog, StudyLogInput, Subject, SubjectInput } from "@/lib/types";
 
 type AcademicManagerProps = {
@@ -16,8 +17,10 @@ type AcademicManagerProps = {
 };
 
 export default function AcademicManager({ logs, subjects, busy, onSave, onSaveSubject, onDeleteLog, onDeleteSubject }: AcademicManagerProps) {
-  const academicLogs = logs.filter((log) => log.study_track === "academic");
-  const academicSubjects = subjects.filter((subject) => subject.category === "Academic");
+  // Resolve old subject/category-only records too, so a redesign never hides
+  // study data that already exists in the database.
+  const academicLogs = logs.filter((log) => resolveStudyTrack(log, subjects) === "academic");
+  const academicSubjects = subjects.filter((subject) => getSubjectStudyTrack(subject) === "academic");
 
   return (
     <section className="planner-manager planner-manager-academic mt-5">

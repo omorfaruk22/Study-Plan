@@ -4,6 +4,7 @@ import { useState } from "react";
 import { BookOpenCheck } from "lucide-react";
 import StudyLogsManager from "@/components/manage/StudyLogsManager";
 import SubjectsManager from "@/components/manage/SubjectsManager";
+import { getSubjectStudyTrack, resolveStudyTrack } from "@/lib/study-track";
 import type { StudyLog, StudyLogInput, StudyTrack, Subject, SubjectCategory, SubjectInput } from "@/lib/types";
 
 type DuetManagerProps = {
@@ -24,8 +25,8 @@ const duetSections: { track: StudyTrack; category: SubjectCategory; label: strin
 export default function DuetManager({ logs, subjects, busy, onSave, onSaveSubject, onDeleteLog, onDeleteSubject }: DuetManagerProps) {
   const [studyTrack, setStudyTrack] = useState<StudyTrack>("duet_department");
   const selected = duetSections.find((section) => section.track === studyTrack) || duetSections[0];
-  const sectionSubjects = subjects.filter((subject) => subject.category === selected.category);
-  const sectionLogs = logs.filter((log) => log.study_track === selected.track);
+  const sectionSubjects = subjects.filter((subject) => getSubjectStudyTrack(subject) === selected.track);
+  const sectionLogs = logs.filter((log) => resolveStudyTrack(log, subjects) === selected.track);
 
   return (
     <section className="planner-manager planner-manager-duet mt-5">
