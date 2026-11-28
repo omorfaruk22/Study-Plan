@@ -383,7 +383,7 @@ export default function OwnerDashboard({ routine, logs, tasks, subjects, selecte
         <article className="planner-glass-card planner-tools-card">
           <header className="planner-card-header"><div><p><Sparkles size={18} /> Quick Tools</p><span>Use your existing planner tools</span></div></header>
           <div className="planner-tool-grid">
-            <Link href="/manage/academic" className="tool-note"><NotebookPen size={22} /><span>Add Note</span></Link>
+            <Link href="/manage/notes" className="tool-note"><NotebookPen size={22} /><span>Add Note</span></Link>
             <Link href="/manage/routine" className="tool-plan"><CalendarDays size={22} /><span>Update Plan</span></Link>
             <Link href="/manage/analytics" className="tool-reports"><BarChart3 size={22} /><span>View Reports</span></Link>
             <Link href="/manage/settings" className="tool-settings"><Settings size={22} /><span>Settings</span></Link>

@@ -1041,6 +1041,68 @@ button { cursor:pointer; }
 .planner-shell :is(a, button, input, select, textarea):focus-visible { outline: 3px solid rgba(189,255,99,.78); outline-offset: 3px; }
 
 .planner-calendar-workspace .planner-routine-live { min-height: 100%; }
+
+.planner-notes-workspace { display: grid; gap: 16px; }
+.planner-notes-hero { display: grid; gap: 0; }
+.planner-notes-count { display: inline-flex; width: fit-content; align-items: center; gap: 6px; margin-top: 13px; border: 1px solid rgba(0,230,118,.28); border-radius: 999px; padding: 6px 9px; color: #b7ffd0; background: rgba(0,230,118,.09); font-size: 10px; font-weight: 850; }
+.planner-notes-grid { display: grid; grid-template-columns: minmax(280px,.78fr) minmax(0,1.22fr); align-items: start; gap: 16px; }
+.planner-section-view .planner-notes-workspace .planner-note-composer { position: sticky; top: 15px; }
+.planner-note-card-heading { display: flex; align-items: center; gap: 10px; }
+.planner-note-card-heading > span { display: grid; width: 36px; height: 36px; flex: 0 0 auto; place-items: center; border-radius: 11px; color: #a7ffbd; background: rgba(0,230,118,.12); }
+.planner-note-card-heading p, .planner-note-list-header p { margin: 0; color: #effff3; font-size: 14px; font-weight: 850; }
+.planner-note-card-heading small, .planner-note-list-header small { display: block; margin-top: 3px; color: #90a997; font-size: 10px; line-height: 1.45; }
+.planner-note-helper { margin: -1px 0 0; color: #90a997; font-size: 10px; line-height: 1.55; }
+.planner-note-empty { display: grid; min-height: 205px; place-items: center; align-content: center; gap: 8px; padding: 22px 12px; color: #78f0a0; text-align: center; }
+.planner-note-empty strong { color: #ecfff1; font-size: 13px; }
+.planner-note-empty > span { max-width: 340px; color: #91a997; font-size: 11px; line-height: 1.55; }
+.planner-note-empty > div { display: flex; flex-wrap: wrap; justify-content: center; gap: 7px; margin-top: 3px; }
+.planner-note-empty a { border: 1px solid rgba(0,230,118,.25); border-radius: 8px; padding: 6px 9px; color: #aaffc3; background: rgba(0,230,118,.07); font-size: 10px; font-weight: 800; text-decoration: none; }
+.planner-note-empty a:hover { color: #effff3; background: rgba(0,230,118,.15); }
+.planner-note-empty.composer-empty { min-height: 300px; }
+.planner-note-list-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.planner-note-list-header > div { min-width: 0; }
+.planner-note-list-header > span { display: grid; min-width: 29px; height: 29px; place-items: center; border: 1px solid rgba(0,230,118,.23); border-radius: 999px; padding: 0 7px; color: #b8ffd0; background: rgba(0,230,118,.09); font-size: 10px; font-weight: 850; }
+.planner-note-filters { display: flex; gap: 6px; overflow-x: auto; margin-top: 16px; padding-bottom: 2px; scrollbar-width: thin; }
+.planner-note-filters button { min-height: 31px; flex: 0 0 auto; border: 1px solid rgba(0,230,118,.18); border-radius: 999px; padding: 6px 10px; color: #9eb5a5; background: rgba(0,230,118,.035); font-size: 10px; font-weight: 800; transition: border-color .2s ease, background .2s ease, color .2s ease; }
+.planner-note-filters button:hover { border-color: rgba(0,230,118,.45); color: #dffff0; background: rgba(0,230,118,.09); }
+.planner-note-filters button[aria-pressed="true"] { border-color: rgba(0,230,118,.58); color: #082211; background: linear-gradient(135deg,#00e676,#a6ff64); box-shadow: 0 6px 13px rgba(0,230,118,.16); }
+.planner-note-search { display: flex; height: 40px; align-items: center; gap: 8px; margin-top: 11px; border: 1px solid rgba(0,230,118,.2); border-radius: 11px; padding: 0 11px; color: #78efa0; background: rgba(3,17,10,.65); }
+.planner-note-search:focus-within { border-color: rgba(0,230,118,.62); box-shadow: 0 0 0 3px rgba(0,230,118,.1); }
+.planner-note-search input { width: 100%; min-width: 0; border: 0; outline: 0; color: #eaffef; background: transparent; font-size: 12px; }
+.planner-note-search input::placeholder { color: #789080; }
+.planner-note-list { display: grid; gap: 10px; margin-top: 13px; }
+.planner-note-item { display: grid; grid-template-columns: 36px minmax(0,1fr); gap: 10px; border: 1px solid rgba(0,230,118,.14); border-radius: 14px; padding: 11px; background: rgba(0,230,118,.035); transition: transform .2s ease, border-color .2s ease, background .2s ease; }
+.planner-note-item:hover { border-color: rgba(0,230,118,.34); background: rgba(0,230,118,.07); transform: translateY(-2px); }
+.planner-note-source-icon { display: grid; width: 36px; height: 36px; place-items: center; border-radius: 11px; color: #abffbe; background: rgba(0,230,118,.12); }
+.note-source-study_tasks .planner-note-source-icon { color: #7ee5ff; background: rgba(0,181,255,.12); }
+.note-source-weekly_routine .planner-note-source-icon { color: #d4a5ff; background: rgba(170,90,255,.13); }
+.planner-note-item-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.planner-note-item-title strong { min-width: 0; overflow: hidden; color: #effff3; font-size: 12px; font-weight: 850; text-overflow: ellipsis; white-space: nowrap; }
+.planner-note-item-title small { flex: 0 0 auto; color: #89a393; font-size: 9px; font-weight: 750; }
+.planner-note-context { margin: 3px 0 0; color: #8fa998; font-size: 10px; line-height: 1.4; }
+.planner-note-value { margin: 8px 0 0; color: #d5e7da; font-size: 12px; line-height: 1.65; white-space: pre-wrap; overflow-wrap: anywhere; }
+.planner-note-actions { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
+.planner-note-actions a, .planner-note-actions button { display: inline-flex; min-height: 28px; align-items: center; gap: 4px; border: 1px solid rgba(0,230,118,.2); border-radius: 8px; padding: 5px 8px; color: #a7ffbf; background: rgba(0,230,118,.06); font-size: 10px; font-weight: 800; text-decoration: none; transition: border-color .2s ease, background .2s ease, color .2s ease; }
+.planner-note-actions a:hover, .planner-note-actions button:hover { border-color: rgba(0,230,118,.48); color: #effff3; background: rgba(0,230,118,.13); }
+.planner-light .planner-notes-count { border-color: rgba(0,145,75,.24); color: #08743a; background: rgba(0,190,90,.08); }
+.planner-light .planner-note-card-heading p, .planner-light .planner-note-list-header p, .planner-light .planner-note-empty strong, .planner-light .planner-note-item-title strong { color: #123b22; }
+.planner-light .planner-note-card-heading small, .planner-light .planner-note-list-header small, .planner-light .planner-note-helper, .planner-light .planner-note-empty > span, .planner-light .planner-note-context { color: #55725e; }
+.planner-light .planner-note-card-heading > span, .planner-light .planner-note-source-icon { color: #087a3e; background: rgba(0,190,90,.1); }
+.planner-light .note-source-study_tasks .planner-note-source-icon { color: #0877a2; background: rgba(0,178,255,.1); }
+.planner-light .note-source-weekly_routine .planner-note-source-icon { color: #7442a7; background: rgba(176,81,255,.1); }
+.planner-light .planner-note-list-header > span { border-color: rgba(0,145,75,.2); color: #087a3e; background: rgba(0,190,90,.075); }
+.planner-light .planner-note-filters button { border-color: rgba(0,145,75,.18); color: #55725e; background: rgba(0,190,90,.035); }
+.planner-light .planner-note-filters button:hover { border-color: rgba(0,145,75,.38); color: #123b22; background: rgba(0,190,90,.09); }
+.planner-light .planner-note-search { border-color: #c9dfce; color: #087a3e; background: #fff; }
+.planner-light .planner-note-search input { color: #173a23; }
+.planner-light .planner-note-item { border-color: #dcebe0; background: #fbfefb; }
+.planner-light .planner-note-item:hover { border-color: rgba(0,145,75,.28); background: #f0faf3; }
+.planner-light .planner-note-value { color: #284633; }
+.planner-light .planner-note-actions a, .planner-light .planner-note-actions button, .planner-light .planner-note-empty a { border-color: rgba(0,145,75,.23); color: #087a3e; background: rgba(0,190,90,.07); }
+.planner-light .planner-note-actions a:hover, .planner-light .planner-note-actions button:hover, .planner-light .planner-note-empty a:hover { color: #064b27; background: rgba(0,190,90,.15); }
+@media (max-width: 960px) { .planner-notes-grid { grid-template-columns: 1fr; }.planner-note-composer { position: static; } }
+@media (max-width: 420px) { .planner-note-item { grid-template-columns: 31px minmax(0,1fr); gap: 8px; padding: 10px; }.planner-note-source-icon { width: 31px; height: 31px; }.planner-note-item-title { align-items: flex-start; flex-direction: column; gap: 2px; }.planner-note-item-title small { flex-basis: auto; }.planner-note-empty.composer-empty { min-height: 250px; } }
+
 .planner-progress-workspace { display: grid; gap: 16px; }
 .planner-progress-header {
   display: flex;

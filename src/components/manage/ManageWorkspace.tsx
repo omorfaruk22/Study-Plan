@@ -8,6 +8,7 @@ import CalendarWorkspace from "@/components/manage/CalendarWorkspace";
 import DeleteConfirmDialog from "@/components/manage/DeleteConfirmDialog";
 import DuetManager from "@/components/manage/DuetManager";
 import OwnerDashboard from "@/components/manage/OwnerDashboard";
+import NotesWorkspace from "@/components/manage/NotesWorkspace";
 import PlannerLayout, { type PlannerProfile } from "@/components/manage/PlannerLayout";
 import PlannerSettingsPanel from "@/components/manage/PlannerSettingsPanel";
 import ProgressWorkspace from "@/components/manage/ProgressWorkspace";
@@ -51,6 +52,11 @@ const sectionMeta: Record<Exclude<WorkspaceTab, "dashboard">, { eyebrow: string;
     eyebrow: "Assignments & exams",
     title: "কাজ ও ডেডলাইন",
     description: "যা জরুরি, তা চোখের সামনে রাখো।",
+  },
+  notes: {
+    eyebrow: "Study notes",
+    title: "তোমার নোট",
+    description: "পড়া, কাজ ও রুটিনের নোট এক জায়গা থেকে দেখো ও আপডেট করো।",
   },
   progress: {
     eyebrow: "Study progress",
@@ -351,6 +357,13 @@ export default function ManageWorkspace({ activeTab, profile }: ManageWorkspaceP
                 busy={busy}
                 onSave={(item: StudyTaskInput, id?: string) => saveRecord("study_tasks", item, id, id ? "কাজ আপডেট হয়েছে।" : "নতুন কাজ যোগ হয়েছে।")}
                 onDelete={(id) => requestDelete("study_tasks", id)}
+              />}
+              {activeTab === "notes" && <NotesWorkspace
+                routine={workspace.routine}
+                logs={workspace.logs}
+                tasks={workspace.tasks}
+                busy={busy}
+                onSaveNote={(collection, id, notes) => saveRecord(collection, { notes }, id, "নোট সংরক্ষণ হয়েছে।")}
               />}
               {activeTab === "progress" && <ProgressWorkspace logs={workspace.logs} tasks={workspace.tasks} subjects={workspace.subjects} />}
               {activeTab === "analytics" && <AnalyticsDashboard logs={workspace.logs} tasks={workspace.tasks} subjects={workspace.subjects} />}

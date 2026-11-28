@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { type MouseEvent, useEffect, useRef } from "react";
-import { BarChart3, BookOpen, CalendarDays, ClipboardList, LayoutDashboard, RefreshCw, Settings, type LucideIcon } from "lucide-react";
+import { BarChart3, BookOpen, CalendarDays, ClipboardList, LayoutDashboard, NotebookPen, RefreshCw, Settings, type LucideIcon } from "lucide-react";
 
-export type WorkspaceTab = "dashboard" | "calendar" | "routine" | "academic" | "duet" | "tasks" | "analytics" | "progress" | "settings";
+export type WorkspaceTab = "dashboard" | "calendar" | "routine" | "academic" | "duet" | "tasks" | "notes" | "analytics" | "progress" | "settings";
 
 type WorkspaceTabsProps = {
   activeTab: WorkspaceTab;
@@ -16,6 +16,7 @@ const tabs: { id: WorkspaceTab; href: string; label: string; icon: LucideIcon }[
   { id: "academic", href: "/manage/academic", label: "Academic", icon: BookOpen },
   { id: "duet", href: "/manage/duet", label: "DUET", icon: BookOpen },
   { id: "tasks", href: "/manage/tasks", label: "কাজ", icon: ClipboardList },
+  { id: "notes", href: "/manage/notes", label: "Notes", icon: NotebookPen },
   { id: "progress", href: "/manage/progress", label: "Progress", icon: BarChart3 },
   { id: "analytics", href: "/manage/analytics", label: "পরিসংখ্যান", icon: BarChart3 },
   { id: "settings", href: "/manage/settings", label: "Settings", icon: Settings },

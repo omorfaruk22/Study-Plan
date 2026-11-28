@@ -12,6 +12,7 @@ const sections: Record<string, WorkspaceTab> = {
   "/manage/academic": "academic",
   "/manage/duet": "duet",
   "/manage/tasks": "tasks",
+  "/manage/notes": "notes",
   "/manage/progress": "progress",
   "/manage/analytics": "analytics",
   "/manage/settings": "settings",

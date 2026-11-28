@@ -72,7 +72,7 @@ const navigation: NavItem[] = [
   { label: "DUET Prep", href: "/manage/duet", tab: "duet", icon: GraduationCap },
   { label: "Progress", href: "/manage/progress", tab: "progress", icon: Target },
   { label: "Calendar", href: "/manage/calendar", tab: "calendar", icon: CalendarDays },
-  { label: "Notes", href: "/manage/academic", tab: "academic", icon: NotebookPen },
+  { label: "Notes", href: "/manage/notes", tab: "notes", icon: NotebookPen },
   { label: "Settings", href: "/manage/settings", tab: "settings", icon: Settings },
 ];
 
@@ -125,7 +125,7 @@ function SidebarNavigation({ activeTab, collapsed, onNavigate }: { activeTab: Wo
   return (
     <nav className="planner-side-nav" aria-label="Study planner navigation">
       {navigation.map(({ label, href, tab, icon: Icon }) => {
-        const active = activeTab === tab && label !== "Notes";
+        const active = activeTab === tab;
         return (
           <Link
             key={label}
@@ -169,13 +169,19 @@ function PlannerSearch({ workspace, onNavigate }: { workspace: OwnerWorkspaceDat
       if (matches(subject.name) || matches(subject.code)) output.push({ label: subject.name, detail: subject.category, href: "/manage/academic", icon: BookOpen });
     }
     for (const task of workspace.tasks) {
-      if (matches(task.title) || matches(task.subject_name)) output.push({ label: task.title, detail: task.task_type, href: "/manage/tasks", icon: ClipboardList });
+      const matchesTask = matches(task.title) || matches(task.subject_name);
+      const matchesTaskNote = matches(task.notes);
+      if (matchesTask || matchesTaskNote) output.push({ label: task.title, detail: matchesTaskNote && !matchesTask ? "task note" : task.task_type, href: matchesTaskNote && !matchesTask ? "/manage/notes" : "/manage/tasks", icon: ClipboardList });
     }
     for (const routine of workspace.routine) {
-      if (matches(routine.title) || matches(routine.subject_name)) output.push({ label: routine.title, detail: `${routine.day} · ${routine.start_time}`, href: "/manage/routine", icon: CalendarDays });
+      const matchesRoutine = matches(routine.title) || matches(routine.subject_name);
+      const matchesRoutineNote = matches(routine.notes);
+      if (matchesRoutine || matchesRoutineNote) output.push({ label: routine.title, detail: matchesRoutineNote && !matchesRoutine ? "routine note" : `${routine.day} · ${routine.start_time}`, href: matchesRoutineNote && !matchesRoutine ? "/manage/notes" : "/manage/routine", icon: CalendarDays });
     }
     for (const log of workspace.logs) {
-      if (matches(log.topic) || matches(log.subject_name)) output.push({ label: log.topic, detail: `${log.study_date} · study log`, href: "/manage/academic", icon: NotebookPen });
+      const matchesLog = matches(log.topic) || matches(log.subject_name);
+      const matchesLogNote = matches(log.notes);
+      if (matchesLog || matchesLogNote) output.push({ label: log.topic, detail: matchesLogNote && !matchesLog ? "study note" : `${log.study_date} · study log`, href: matchesLogNote && !matchesLog ? "/manage/notes" : "/manage/academic", icon: NotebookPen });
     }
 
     return output.slice(0, 7);
