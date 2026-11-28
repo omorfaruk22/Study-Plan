@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { Save } from "lucide-react";
 import type { StudyLog, StudyLogInput, StudyTrack, Subject } from "@/lib/types";
+import { getDhakaDateKey } from "@/lib/routine-time";
 import StudyStopwatch from "@/components/manage/StudyStopwatch";
 import {
   EmptyState,
@@ -25,8 +26,7 @@ type StudyLogsManagerProps = {
 };
 
 function today() {
-  const date = new Date();
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+  return getDhakaDateKey();
 }
 
 function createEmptyLog(studyTrack: StudyTrack): StudyLogInput {
@@ -82,7 +82,7 @@ export default function StudyLogsManager({ logs, subjects, studyTrack, busy, onS
   const trackLabel = studyTrack === "academic" ? "একাডেমিক" : studyTrack === "duet_department" ? "DUET Department" : "DUET Non-Department";
 
   return (
-    <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(300px,.8fr)_minmax(0,1.2fr)]">
+    <div className="planner-manager-grid mt-5 grid gap-5 lg:grid-cols-[minmax(300px,.8fr)_minmax(0,1.2fr)]">
       <section className="card p-3.5 sm:p-5">
         <h2 className="mb-4 font-extrabold text-green-950">{editingId ? "পড়ার হিসাব সম্পাদনা" : `${trackLabel} পড়া যোগ করো`}</h2>
         <StudyStopwatch

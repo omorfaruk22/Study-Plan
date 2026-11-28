@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { CirclePlay, Pause, Play, Timer, Save } from "lucide-react";
 import type { StudyLogInput, StudyTrack } from "@/lib/types";
+import { addDaysToDateKey, getDhakaDateKey } from "@/lib/routine-time";
 import {
   elapsedAt,
   parseStopwatchSession,
@@ -23,14 +24,7 @@ type StudyStopwatchProps = {
 
 
 function localDateAt(timestamp: number) {
-  const date = new Date(timestamp);
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-}
-
-function addDaysToDateKey(value: string, days: number) {
-  const [year, month, day] = value.split("-").map(Number);
-  const date = new Date(year, month - 1, day + days, 12);
-  return [date.getFullYear(), String(date.getMonth() + 1).padStart(2, "0"), String(date.getDate()).padStart(2, "0")].join("-");
+  return getDhakaDateKey(new Date(timestamp));
 }
 
 function formatElapsed(milliseconds: number) {
@@ -160,7 +154,7 @@ export default function StudyStopwatch({ entry, canStart, busy, onFinish, onSess
   const subjectLabel = session?.entry.subject_name?.trim() || "বিষয় লেখা হয়নি";
 
   return (
-    <section className="mb-4 overflow-hidden rounded-2xl border border-green-500/25 bg-gradient-to-br from-green-500/10 via-green-500/5 to-transparent p-3.5 sm:p-4" aria-label="পড়ার stopwatch">
+    <section className="planner-stopwatch mb-4 overflow-hidden rounded-2xl border border-green-500/25 bg-gradient-to-br from-green-500/10 via-green-500/5 to-transparent p-3.5 sm:p-4" aria-label="পড়ার stopwatch">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
           <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-green-500/15 text-green-500"><Timer size={20} /></span>

@@ -8,6 +8,7 @@ import { getDhakaRoutineClock, routineMatchesDay, routineTimeToMinutes, WEEKDAYS
 type TodayClassRoutineProps = {
   routine: RoutineItem[];
   loading: boolean;
+  dataUnavailable: boolean;
 };
 
 function isClassInProgress(item: RoutineItem, currentMinutes: number) {
@@ -19,7 +20,7 @@ function isClassInProgress(item: RoutineItem, currentMinutes: number) {
     : currentMinutes >= start || currentMinutes < end;
 }
 
-export default function TodayClassRoutine({ routine, loading }: TodayClassRoutineProps) {
+export default function TodayClassRoutine({ routine, loading, dataUnavailable }: TodayClassRoutineProps) {
   const [today, setToday] = useState(() => getDhakaRoutineClock());
   const [dayOffset, setDayOffset] = useState(0);
 
@@ -68,7 +69,7 @@ export default function TodayClassRoutine({ routine, loading }: TodayClassRoutin
         <p className="mt-3 text-base text-slate-500">ক্লাসের সময়সূচি লোড হচ্ছে...</p>
       ) : classes.length === 0 ? (
         <p className="mt-3 rounded-xl border border-dashed border-green-500/20 px-3 py-2.5 text-base text-slate-500">
-          {dayOffset === 0 ? "আজ কোনো ক্লাস নেই।" : `${selectedDay} কোনো ক্লাস নেই।`}
+          {dataUnavailable ? "লাইভ ক্লাসের তথ্য পাওয়া যাচ্ছে না।" : dayOffset === 0 ? "আজ কোনো ক্লাস নেই।" : `${selectedDay} কোনো ক্লাস নেই।`}
         </p>
       ) : (
         <ul className="mt-3 grid grid-cols-1 gap-2 min-[420px]:grid-cols-[repeat(auto-fit,minmax(150px,1fr))]">

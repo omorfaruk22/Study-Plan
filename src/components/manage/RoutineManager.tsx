@@ -127,7 +127,7 @@ export default function RoutineManager({ routine, subjects, busy, onSave, onDele
   ];
 
   return (
-    <div className="mt-5 space-y-5">
+    <div className="planner-manager planner-manager-routine mt-5 space-y-5">
       <div className="grid items-start gap-5 lg:grid-cols-2">
         <section className="card relative overflow-visible p-3.5 sm:p-5">
           <div className="absolute inset-x-5 top-0 h-1 rounded-b-full bg-gradient-to-r from-green-500 via-lime-400 to-emerald-500" />

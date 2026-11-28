@@ -1,14 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { defaultRoutine } from "@/lib/defaults";
 import type { PublicStudyStats, RoutineItem, Subject } from "@/lib/types";
 
 type PublicStudyResponse = {
   routine?: RoutineItem[];
   subjects?: Subject[];
   studyStats?: PublicStudyStats;
-  demoMode?: boolean;
+  dataUnavailable?: boolean;
 };
 
 const emptyStudyStats: PublicStudyStats = {
@@ -17,17 +16,12 @@ const emptyStudyStats: PublicStudyStats = {
   duet_non_department_minutes: 0,
 };
 
-const sampleRoutine = defaultRoutine.map(({ notes: _notes, ...item }, index) => ({
-  ...item,
-  id: `sample-routine-${index}`,
-})) as RoutineItem[];
-
 export function usePublicStudyData() {
-  const [routine, setRoutine] = useState<RoutineItem[]>(sampleRoutine);
+  const [routine, setRoutine] = useState<RoutineItem[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [studyStats, setStudyStats] = useState<PublicStudyStats>(emptyStudyStats);
   const [loading, setLoading] = useState(true);
-  const [demoMode, setDemoMode] = useState(false);
+  const [dataUnavailable, setDataUnavailable] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -40,12 +34,12 @@ export function usePublicStudyData() {
         const data = (await response.json()) as PublicStudyResponse;
         if (!active) return;
 
-        setRoutine(data.routine || sampleRoutine);
+        setRoutine(data.routine || []);
         setSubjects(data.subjects || []);
         setStudyStats(data.studyStats || emptyStudyStats);
-        setDemoMode(Boolean(data.demoMode));
+        setDataUnavailable(Boolean(data.dataUnavailable));
       } catch {
-        if (active) setDemoMode(true);
+        if (active) setDataUnavailable(true);
       } finally {
         if (active) setLoading(false);
       }
@@ -57,5 +51,5 @@ export function usePublicStudyData() {
     };
   }, []);
 
-  return { routine, subjects, studyStats, loading, demoMode };
+  return { routine, subjects, studyStats, loading, dataUnavailable };
 }
