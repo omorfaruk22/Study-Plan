@@ -2,21 +2,24 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Header from "@/components/Header";
 import AcademicManager from "@/components/manage/AcademicManager";
 import AnalyticsDashboard from "@/components/manage/analytics/AnalyticsDashboard";
 import DeleteConfirmDialog from "@/components/manage/DeleteConfirmDialog";
 import DuetManager from "@/components/manage/DuetManager";
 import OwnerDashboard from "@/components/manage/OwnerDashboard";
+import PlannerLayout, { type PlannerProfile } from "@/components/manage/PlannerLayout";
 import RoutineManager from "@/components/manage/RoutineManager";
 import TasksManager from "@/components/manage/TasksManager";
-import WorkspaceHeader from "@/components/manage/WorkspaceHeader";
-import WorkspaceTabs, { type WorkspaceTab } from "@/components/manage/WorkspaceTabs";
-import { MongoConnectionError, SuccessToast, WorkspaceFeedback } from "@/components/manage/WorkspaceFeedback";
+import { MongoConnectionError, SuccessToast } from "@/components/manage/WorkspaceFeedback";
+import type { WorkspaceTab } from "@/components/manage/WorkspaceTabs";
 import { requestApi } from "@/lib/owner-api";
-import type { OwnerCollection, OwnerWorkspaceData, RoutineInput, StudyLogInput, StudyTaskInput, SubjectInput } from "@/lib/types";
+import { getDhakaDateKey } from "@/lib/routine-time";
+import type { OwnerCollection, OwnerWorkspaceData, RoutineInput, StudyLogInput, StudyTask, StudyTaskInput, SubjectInput } from "@/lib/types";
 
-type ManageWorkspaceProps = { activeTab: WorkspaceTab };
+type ManageWorkspaceProps = {
+  activeTab: WorkspaceTab;
+  profile: PlannerProfile;
+};
 
 const emptyWorkspace: OwnerWorkspaceData = { routine: [], logs: [], tasks: [], subjects: [] };
 
@@ -67,18 +70,37 @@ function withoutDeletedItem(workspace: OwnerWorkspaceData, collection: OwnerColl
   }
 }
 
-export default function ManageWorkspace({ activeTab }: ManageWorkspaceProps) {
+function PlannerLoading() {
+  return (
+    <main className="planner-loading-screen" aria-label="Dashboard loading">
+      <div className="planner-loading-sidebar" />
+      <div className="planner-loading-main">
+        <div className="planner-loading-top" />
+        <div className="planner-loading-hero" />
+        <div className="planner-loading-stats"><i /><i /><i /><i /></div>
+        <div className="planner-loading-grid"><i /><i /><i /></div>
+      </div>
+    </main>
+  );
+}
+
+export default function ManageWorkspace({ activeTab, profile }: ManageWorkspaceProps) {
   const router = useRouter();
   const [workspace, setWorkspace] = useState<OwnerWorkspaceData>(emptyWorkspace);
   const [ready, setReady] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [selectedDate, setSelectedDate] = useState("");
   const [pendingDelete, setPendingDelete] = useState<{ collection: OwnerCollection; id: string; itemName: string } | null>(null);
 
   const load = useCallback(async () => {
     const data = await requestApi<OwnerWorkspaceData>("/api/owner");
     setWorkspace(data);
+  }, []);
+
+  useEffect(() => {
+    setSelectedDate(getDhakaDateKey());
   }, []);
 
   useEffect(() => {
@@ -182,123 +204,115 @@ export default function ManageWorkspace({ activeTab }: ManageWorkspaceProps) {
     }
   }
 
-  const closeSuccessToast = useCallback(() => setMessage(""), []);
-
   async function refresh() {
     setError("");
     setMessage("");
     try {
       await load();
-      setMessage("তথ্য আপডেট হয়েছে।");
+      setMessage("Live data আপডেট হয়েছে।");
     } catch (refreshError) {
       setError(refreshError instanceof Error ? refreshError.message : "সমস্যা হয়েছে।");
     }
   }
 
-  if (!ready) {
-    return <><Header /><main className="container py-20 text-center text-slate-500">Owner access যাচাই করা হচ্ছে...</main></>;
+  function completeTask(task: StudyTask) {
+    const { id, ...data } = task;
+    return saveRecord("study_tasks", { ...data, status: "সম্পন্ন" }, id, `“${task.title}” সম্পন্ন হিসেবে চিহ্নিত হয়েছে।`);
   }
 
+  if (!ready) return <PlannerLoading />;
+
   if (error && workspace.routine.length === 0 && workspace.logs.length === 0 && workspace.tasks.length === 0 && workspace.subjects.length === 0) {
-    return <><Header /><MongoConnectionError message={error} /></>;
+    return <MongoConnectionError message={error} />;
   }
 
   const currentSection = activeTab === "dashboard" ? null : sectionMeta[activeTab];
 
   return (
     <>
-      <Header owner />
-      <SuccessToast message={message} onClose={closeSuccessToast} />
+      <SuccessToast message={message} onClose={() => setMessage("")} />
       {pendingDelete && <DeleteConfirmDialog itemName={pendingDelete.itemName} busy={busy} onCancel={() => setPendingDelete(null)} onConfirm={() => void confirmDelete()} />}
-      <main className="manage-shell">
-        <div className="manage-shell-glow" aria-hidden="true" />
-        <div className="container relative pb-12 pt-4 sm:pb-16 sm:pt-6">
-          <div className="space-y-4 sm:space-y-5">
-            <WorkspaceHeader />
-            <section className="workspace-navigation-shell" aria-label="Management navigation">
-              <WorkspaceTabs activeTab={activeTab} onRefresh={() => void refresh()} />
-            </section>
-            <WorkspaceFeedback error={error} />
-
-            {activeTab === "dashboard" ? (
-              <OwnerDashboard
+      <PlannerLayout
+        activeTab={activeTab}
+        profile={profile}
+        workspace={workspace}
+        selectedDate={selectedDate}
+        onSelectedDateChange={setSelectedDate}
+        onRefresh={() => void refresh()}
+      >
+        {error && <div className="planner-error-banner" role="alert">{error}</div>}
+        {activeTab === "dashboard" ? (
+          <OwnerDashboard
+            routine={workspace.routine}
+            logs={workspace.logs}
+            tasks={workspace.tasks}
+            subjects={workspace.subjects}
+            selectedDate={selectedDate}
+            busy={busy}
+            onRestored={load}
+            onReviewed={(log, reviewDate, nextReview) => {
+              const { id, ...data } = log;
+              return saveRecord(
+                "study_logs",
+                { ...data, last_reviewed_date: reviewDate, review_due_date: nextReview },
+                id,
+                "আবার পড়ার হিসাব হয়েছে; ৩ দিন পরে আবার মনে করাবো।",
+              );
+            }}
+            onCompleteTask={completeTask}
+          />
+        ) : (
+          <section className="planner-section-view">
+            <header className="planner-section-heading">
+              <p>{currentSection?.eyebrow}</p>
+              <h1>{currentSection?.title}</h1>
+              <span>{currentSection?.description}</span>
+            </header>
+            <div key={activeTab} className="manage-section-enter">
+              {activeTab === "routine" && <RoutineManager
                 routine={workspace.routine}
+                subjects={workspace.subjects}
+                busy={busy}
+                onSave={(item: RoutineInput, id?: string) => saveRecord(
+                  "weekly_routine",
+                  item,
+                  id,
+                  item.category === "ক্লাস রুটিন"
+                    ? id ? "ক্লাস রুটিন আপডেট হয়েছে।" : "নতুন ক্লাস যোগ হয়েছে।"
+                    : id ? "রুটিন আপডেট হয়েছে।" : "নতুন রুটিন যোগ হয়েছে।",
+                )}
+                onDelete={(id) => requestDelete("weekly_routine", id)}
+              />}
+              {activeTab === "academic" && <AcademicManager
                 logs={workspace.logs}
+                subjects={workspace.subjects}
+                busy={busy}
+                onSave={(item: StudyLogInput, id?: string) => saveRecord("study_logs", item, id, id ? "পড়ার হিসাব আপডেট হয়েছে।" : item.study_track === "academic" ? "একাডেমিক পড়ার হিসাব সংরক্ষণ হয়েছে।" : item.study_track === "duet_department" ? "DUET Department পড়ার হিসাব সংরক্ষণ হয়েছে।" : "DUET Non-Department পড়ার হিসাব সংরক্ষণ হয়েছে।")}
+                onSaveSubject={(item: SubjectInput, id?: string) => saveRecord("subjects", item, id, id ? "বিষয় আপডেট হয়েছে।" : "একাডেমিক বিষয় যোগ হয়েছে।")}
+                onDeleteLog={(id) => requestDelete("study_logs", id)}
+                onDeleteSubject={(id) => requestDelete("subjects", id)}
+              />}
+              {activeTab === "duet" && <DuetManager
+                logs={workspace.logs}
+                subjects={workspace.subjects}
+                busy={busy}
+                onSave={(item: StudyLogInput, id?: string) => saveRecord("study_logs", item, id, id ? "পড়ার হিসাব আপডেট হয়েছে।" : item.study_track === "academic" ? "একাডেমিক পড়ার হিসাব সংরক্ষণ হয়েছে।" : item.study_track === "duet_department" ? "DUET Department পড়ার হিসাব সংরক্ষণ হয়েছে।" : "DUET Non-Department পড়ার হিসাব সংরক্ষণ হয়েছে।")}
+                onSaveSubject={(item: SubjectInput, id?: string) => saveRecord("subjects", item, id, id ? "বিষয় আপডেট হয়েছে।" : "DUET বিষয় যোগ হয়েছে।")}
+                onDeleteLog={(id) => requestDelete("study_logs", id)}
+                onDeleteSubject={(id) => requestDelete("subjects", id)}
+              />}
+              {activeTab === "tasks" && <TasksManager
                 tasks={workspace.tasks}
                 subjects={workspace.subjects}
                 busy={busy}
-                onRestored={load}
-                onReviewed={(log, reviewDate, nextReview) => {
-                  const { id, ...data } = log;
-                  return saveRecord(
-                    "study_logs",
-                    { ...data, last_reviewed_date: reviewDate, review_due_date: nextReview },
-                    id,
-                    "আবার পড়ার হিসাব হয়েছে; ৩ দিন পরে আবার মনে করাবো।",
-                  );
-                }}
-              />
-            ) : (
-              <section className="workspace-section">
-                <header className="workspace-section-header">
-                  <div>
-                    <p>{currentSection?.eyebrow}</p>
-                    <h1>{currentSection?.title}</h1>
-                    <span>{currentSection?.description}</span>
-                  </div>
-                </header>
-
-                <div key={activeTab} className="manage-section-enter">
-                  {activeTab === "routine" && <RoutineManager
-                    routine={workspace.routine}
-                    subjects={workspace.subjects}
-                    busy={busy}
-                    onSave={(item: RoutineInput, id?: string) => saveRecord(
-                      "weekly_routine",
-                      item,
-                      id,
-                      item.category === "ক্লাস রুটিন"
-                        ? id ? "ক্লাস রুটিন আপডেট হয়েছে।" : "নতুন ক্লাস যোগ হয়েছে।"
-                        : id ? "রুটিন আপডেট হয়েছে।" : "নতুন রুটিন যোগ হয়েছে।",
-                    )}
-                    onDelete={(id) => requestDelete("weekly_routine", id)}
-                  />}
-                  {activeTab === "academic" && <AcademicManager
-                    logs={workspace.logs}
-                    subjects={workspace.subjects}
-                    busy={busy}
-                    onSave={(item: StudyLogInput, id?: string) => saveRecord("study_logs", item, id, id ? "পড়ার হিসাব আপডেট হয়েছে।" : item.study_track === "academic" ? "একাডেমিক পড়ার হিসাব সংরক্ষণ হয়েছে।" : item.study_track === "duet_department" ? "DUET Department পড়ার হিসাব সংরক্ষণ হয়েছে।" : "DUET Non-Department পড়ার হিসাব সংরক্ষণ হয়েছে।")}
-                    onSaveSubject={(item: SubjectInput, id?: string) => saveRecord("subjects", item, id, id ? "বিষয় আপডেট হয়েছে।" : "একাডেমিক বিষয় যোগ হয়েছে।")}
-                    onDeleteLog={(id) => requestDelete("study_logs", id)}
-                    onDeleteSubject={(id) => requestDelete("subjects", id)}
-                  />}
-                  {activeTab === "duet" && <DuetManager
-                    logs={workspace.logs}
-                    subjects={workspace.subjects}
-                    busy={busy}
-                    onSave={(item: StudyLogInput, id?: string) => saveRecord("study_logs", item, id, id ? "পড়ার হিসাব আপডেট হয়েছে।" : item.study_track === "academic" ? "একাডেমিক পড়ার হিসাব সংরক্ষণ হয়েছে।" : item.study_track === "duet_department" ? "DUET Department পড়ার হিসাব সংরক্ষণ হয়েছে।" : "DUET Non-Department পড়ার হিসাব সংরক্ষণ হয়েছে.")}
-                    onSaveSubject={(item: SubjectInput, id?: string) => saveRecord("subjects", item, id, id ? "বিষয় আপডেট হয়েছে।" : "DUET বিষয় যোগ হয়েছে।")}
-                    onDeleteLog={(id) => requestDelete("study_logs", id)}
-                    onDeleteSubject={(id) => requestDelete("subjects", id)}
-                  />}
-                  {activeTab === "tasks" && <TasksManager
-                    tasks={workspace.tasks}
-                    subjects={workspace.subjects}
-                    busy={busy}
-                    onSave={(item: StudyTaskInput, id?: string) => saveRecord("study_tasks", item, id, id ? "কাজ আপডেট হয়েছে।" : "নতুন কাজ যোগ হয়েছে.")}
-                    onDelete={(id) => requestDelete("study_tasks", id)}
-                  />}
-                  {activeTab === "analytics" && <AnalyticsDashboard logs={workspace.logs} tasks={workspace.tasks} subjects={workspace.subjects} />}
-                </div>
-              </section>
-            )}
-
-            <p className="manage-security-note">
-              Private workspace · সার্ভার-সাইড authorization দিয়ে সুরক্ষিত
-            </p>
-          </div>
-        </div>
-      </main>
+                onSave={(item: StudyTaskInput, id?: string) => saveRecord("study_tasks", item, id, id ? "কাজ আপডেট হয়েছে।" : "নতুন কাজ যোগ হয়েছে।")}
+                onDelete={(id) => requestDelete("study_tasks", id)}
+              />}
+              {activeTab === "analytics" && <AnalyticsDashboard logs={workspace.logs} tasks={workspace.tasks} subjects={workspace.subjects} />}
+            </div>
+          </section>
+        )}
+      </PlannerLayout>
     </>
   );
 }

@@ -10,10 +10,15 @@ export default async function ManageLayout({ children }: { children: React.React
   const currentEmail = (session?.user?.email || "").trim().toLowerCase();
   const ownerEmail = (process.env.OWNER_EMAIL || "").trim().toLowerCase();
   if (!ownerEmail || currentEmail !== ownerEmail) redirect("/login");
+  const profile = {
+    name: session?.user?.name?.trim() || null,
+    email: currentEmail,
+    image: session?.user?.image || null,
+  };
   return (
     <>
       <StopwatchIdleMonitor />
-      <ManageWorkspaceRouter />
+      <ManageWorkspaceRouter profile={profile} />
       {children}
     </>
   );

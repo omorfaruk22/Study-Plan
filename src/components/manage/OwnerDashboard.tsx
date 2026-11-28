@@ -1,416 +1,380 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import {
   ArrowRight,
   BarChart3,
   BookOpen,
+  CalendarClock,
   CalendarDays,
+  Check,
   CheckCircle2,
-  ClipboardList,
+  ChevronDown,
+  ChevronRight,
+  CirclePlay,
   Clock3,
-  GraduationCap,
-  Layers3,
+  Flame,
   ListChecks,
   Plus,
   Sparkles,
   Target,
-  Timer,
+  Trophy,
   type LucideIcon,
 } from "lucide-react";
 import DataBackupTools from "@/components/manage/DataBackupTools";
 import DailyGoalsPanel from "@/components/manage/DailyGoalsPanel";
 import ReviewReminderPanel from "@/components/manage/ReviewReminderPanel";
-import { formatMinutes, localDateKey } from "@/components/manage/analytics/chart-utils";
-import { getDhakaRoutineClock, routineMatchesDay, routineTimeToMinutes, type DhakaRoutineClock } from "@/lib/routine-time";
-import { formatTime12 } from "@/lib/time-format";
+import { formatMinutes, subjectLabel } from "@/components/manage/analytics/chart-utils";
+import { formatTimeRange, getDhakaDateKey, getDhakaRoutineClock, routineMatchesDay, routineTimeToMinutes, type DhakaRoutineClock } from "@/lib/routine-time";
 import type { OwnerWorkspaceData, RoutineItem, StudyLog, StudyTask } from "@/lib/types";
 
 type OwnerDashboardProps = OwnerWorkspaceData & {
+  selectedDate: string;
   busy: boolean;
   onRestored: () => Promise<void>;
   onReviewed: (log: StudyLog, today: string, nextReview: string) => Promise<boolean>;
+  onCompleteTask: (task: StudyTask) => Promise<boolean>;
 };
 
-type QuickAction = {
-  href: string;
+type StatCard = {
+  label: string;
+  value: string;
+  detail: string;
   icon: LucideIcon;
-  title: string;
-  description: string;
-  tone: "green" | "blue" | "amber" | "violet";
+  tone: "subjects" | "time" | "progress" | "streak";
 };
+
+type UpcomingItem = RoutineItem & { dateKey: string; dayOffset: number };
 
 function isTaskDone(task: StudyTask) {
   return task.status === "সম্পন্ন" || task.status === "জমা হয়েছে";
 }
 
-function dateDifference(from: string, to: string) {
-  const first = new Date(`${from}T12:00:00`).getTime();
-  const second = new Date(`${to}T12:00:00`).getTime();
-  return Math.round((second - first) / 86_400_000);
+function addDaysToDateKey(value: string, days: number) {
+  const date = new Date(`${value}T12:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
 }
 
-function dueLabel(dueDate: string | null | undefined, today: string) {
-  if (!dueDate) return "তারিখ সেট করা হয়নি";
-  if (!today) return `ডেডলাইন: ${dueDate}`;
-  const distance = dateDifference(today, dueDate);
-  if (distance < 0) return `${Math.abs(distance)} দিন overdue`;
-  if (distance === 0) return "আজ ডেডলাইন";
-  if (distance === 1) return "আগামীকাল";
-  return `${distance} দিন পরে`;
+function dateFromKey(value: string) {
+  return new Date(`${value}T12:00:00Z`);
 }
 
-function isInProgress(item: RoutineItem, minutes: number) {
-  const start = routineTimeToMinutes(item.start_time);
-  const end = routineTimeToMinutes(item.end_time);
-  if (start === null || end === null || start === end) return false;
-  return start < end ? minutes >= start && minutes < end : minutes >= start || minutes < end;
+function dayStreak(logs: StudyLog[], today: string) {
+  if (!today) return 0;
+  const studiedDays = new Set(logs.filter((log) => Number(log.actual_minutes) > 0).map((log) => log.study_date));
+  let streak = 0;
+  let cursor = today;
+  while (studiedDays.has(cursor)) {
+    streak += 1;
+    cursor = addDaysToDateKey(cursor, -1);
+  }
+  return streak;
 }
 
-function routineSort(first: RoutineItem, second: RoutineItem) {
-  const firstStart = routineTimeToMinutes(first.start_time);
-  const secondStart = routineTimeToMinutes(second.start_time);
-  if (firstStart !== null && secondStart !== null) return firstStart - secondStart;
-  if (firstStart !== null) return -1;
-  if (secondStart !== null) return 1;
-  return first.sort_order - second.sort_order;
+function greeting(minutes: number) {
+  if (minutes < 12 * 60) return "Good Morning!";
+  if (minutes < 17 * 60) return "Good Afternoon!";
+  return "Good Evening!";
 }
 
-function nextRoutineItem(items: RoutineItem[], minutes: number) {
-  return items.find((item) => {
-    const start = routineTimeToMinutes(item.start_time);
-    return start !== null && start > minutes;
-  }) || null;
+function dateLabel(value: string, options: Intl.DateTimeFormatOptions = { day: "numeric", month: "short" }) {
+  if (!value) return "—";
+  return new Intl.DateTimeFormat("en-US", { ...options, timeZone: "UTC" }).format(dateFromKey(value));
 }
 
-const quickActions: QuickAction[] = [
-  {
-    href: "/manage/routine",
-    icon: CalendarDays,
-    title: "রুটিন সাজাও",
-    description: "সপ্তাহের পড়া ও ক্লাসের সময় ঠিক করো",
-    tone: "green",
-  },
-  {
-    href: "/manage/academic",
-    icon: BookOpen,
-    title: "বিষয় ও পড়া যোগ করো",
-    description: "বিষয় বানাও, সময় ধরে প্রথম session লগ করো",
-    tone: "blue",
-  },
-  {
-    href: "/manage/tasks",
-    icon: ClipboardList,
-    title: "কাজ ট্র্যাক করো",
-    description: "Assignment, exam ও deadline চোখে রাখো",
-    tone: "amber",
-  },
-  {
-    href: "/manage/analytics",
-    icon: BarChart3,
-    title: "অগ্রগতি দেখো",
-    description: "পড়ার সময় ও ধারাবাহিকতার চিত্র দেখো",
-    tone: "violet",
-  },
-];
+function taskProgress(tasks: StudyTask[]) {
+  if (!tasks.length) return null;
+  return Math.round(tasks.filter(isTaskDone).length / tasks.length * 100);
+}
 
-export default function OwnerDashboard({ routine, logs, tasks, subjects, busy, onRestored, onReviewed }: OwnerDashboardProps) {
+function buildStudySeries(logs: StudyLog[], today: string, days: number) {
+  if (!today) return [];
+  const totals = new Map<string, number>();
+  for (const log of logs) {
+    totals.set(log.study_date, (totals.get(log.study_date) || 0) + Math.max(0, Number(log.actual_minutes) || 0));
+  }
+  return Array.from({ length: days }, (_, index) => {
+    const date = addDaysToDateKey(today, index - (days - 1));
+    return { date, minutes: totals.get(date) || 0 };
+  });
+}
+
+function getUpcomingRoutine(routine: RoutineItem[], clock: DhakaRoutineClock | null, today: string) {
+  if (!clock || !today) return [] as UpcomingItem[];
+  const occurrences: UpcomingItem[] = [];
+  for (let offset = 0; offset < 7; offset += 1) {
+    const dateKey = addDaysToDateKey(today, offset);
+    const day = getDhakaRoutineClock(new Date(`${dateKey}T06:00:00Z`)).day;
+    for (const item of routine) {
+      const start = routineTimeToMinutes(item.start_time);
+      if (!routineMatchesDay(item.day, day)) continue;
+      if (offset === 0 && start !== null && start <= clock.minutes) continue;
+      occurrences.push({ ...item, dateKey, dayOffset: offset });
+    }
+  }
+  return occurrences
+    .sort((first, second) => {
+      if (first.dayOffset !== second.dayOffset) return first.dayOffset - second.dayOffset;
+      const firstStart = routineTimeToMinutes(first.start_time);
+      const secondStart = routineTimeToMinutes(second.start_time);
+      if (firstStart !== null && secondStart !== null) return firstStart - secondStart;
+      if (firstStart !== null) return -1;
+      if (secondStart !== null) return 1;
+      return first.sort_order - second.sort_order;
+    })
+    .slice(0, 4);
+}
+
+function ProgressRing({ progress }: { progress: number | null }) {
+  const circumference = 2 * Math.PI * 56;
+  const offset = progress === null ? circumference : circumference - (circumference * progress / 100);
+  return (
+    <div className="planner-progress-ring" style={{ "--ring-offset": offset } as CSSProperties}>
+      <svg viewBox="0 0 140 140" role="img" aria-label={progress === null ? "No task progress data" : `${progress}% task progress`}>
+        <defs>
+          <linearGradient id="planner-progress-gradient" x1="0" x2="1" y1="0" y2="1">
+            <stop offset="0%" stopColor="#00ff73" />
+            <stop offset="100%" stopColor="#a3ff42" />
+          </linearGradient>
+          <filter id="planner-progress-glow"><feGaussianBlur stdDeviation="2.8" result="blur" /><feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge></filter>
+        </defs>
+        <circle cx="70" cy="70" r="56" className="planner-progress-track" />
+        {progress !== null && <circle cx="70" cy="70" r="56" className="planner-progress-value" strokeDasharray={circumference} filter="url(#planner-progress-glow)" />}
+      </svg>
+      <div>
+        <strong>{progress === null ? "—" : `${progress}%`}</strong>
+        <span>{progress === null ? "No task data" : "Completed"}</span>
+      </div>
+    </div>
+  );
+}
+
+function StudyHistoryChart({ series }: { series: { date: string; minutes: number }[] }) {
+  const hasData = series.some((item) => item.minutes > 0);
+  if (!hasData) {
+    return <div className="planner-chart-empty"><BarChart3 size={23} /><strong>এখনো কোনো study history নেই</strong><span>পড়ার session save হলে এখানে live progress chart দেখা যাবে।</span></div>;
+  }
+
+  const width = 650;
+  const height = 210;
+  const padding = { top: 18, right: 14, bottom: 34, left: 34 };
+  const chartWidth = width - padding.left - padding.right;
+  const chartHeight = height - padding.top - padding.bottom;
+  const max = Math.max(...series.map((item) => item.minutes), 1);
+  const points = series.map((item, index) => {
+    const x = padding.left + chartWidth * index / Math.max(1, series.length - 1);
+    const y = padding.top + chartHeight - (item.minutes / max * chartHeight);
+    return { ...item, x, y };
+  });
+  const line = points.map((point) => `${point.x},${point.y}`).join(" ");
+  const area = `M ${points[0].x},${padding.top + chartHeight} L ${points.map((point) => `${point.x},${point.y}`).join(" L ")} L ${points[points.length - 1].x},${padding.top + chartHeight} Z`;
+  const labels = Array.from(new Set(
+    Array.from({ length: Math.min(5, points.length) }, (_, index) => Math.round(index * (points.length - 1) / Math.max(1, Math.min(5, points.length) - 1))),
+  )).map((index) => points[index]);
+
+  return (
+    <div className="planner-chart-wrap">
+      <svg viewBox={`0 0 ${width} ${height}`} className="planner-history-chart" role="img" aria-label={`Actual study time over the last ${series.length} days`}>
+        <defs>
+          <linearGradient id="planner-area-gradient" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stopColor="#00e676" stopOpacity=".4" />
+            <stop offset="100%" stopColor="#00e676" stopOpacity="0" />
+          </linearGradient>
+          <filter id="planner-line-glow"><feGaussianBlur stdDeviation="2" result="blur" /><feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge></filter>
+        </defs>
+        {[0.25, 0.5, 0.75, 1].map((level) => {
+          const y = padding.top + chartHeight - chartHeight * level;
+          return <line key={level} x1={padding.left} x2={width - padding.right} y1={y} y2={y} className="planner-chart-grid" />;
+        })}
+        <path d={area} fill="url(#planner-area-gradient)" />
+        <polyline points={line} className="planner-chart-line" filter="url(#planner-line-glow)" />
+        {points.map((point) => (
+          <g key={point.date}>
+            <title>{`${dateLabel(point.date)}: ${formatMinutes(point.minutes)}`}</title>
+            {point.minutes > 0 && <circle cx={point.x} cy={point.y} r="4.1" className="planner-chart-point" />}
+          </g>
+        ))}
+        {labels.map((point) => <text key={point.date} x={point.x} y={height - 10} textAnchor="middle" className="planner-chart-label">{dateLabel(point.date)}</text>)}
+      </svg>
+    </div>
+  );
+}
+
+export default function OwnerDashboard({ routine, logs, tasks, subjects, selectedDate, busy, onRestored, onReviewed, onCompleteTask }: OwnerDashboardProps) {
   const [clock, setClock] = useState<DhakaRoutineClock | null>(null);
   const [today, setToday] = useState("");
+  const [chartDays, setChartDays] = useState<7 | 30>(30);
 
   useEffect(() => {
-    const updateClock = () => {
+    const update = () => {
       const now = new Date();
       setClock(getDhakaRoutineClock(now));
-      setToday(localDateKey(now));
+      setToday(getDhakaDateKey(now));
     };
-    updateClock();
-    const timer = window.setInterval(updateClock, 30_000);
-    return () => window.clearInterval(timer);
+    update();
+    const interval = window.setInterval(update, 30_000);
+    return () => window.clearInterval(interval);
   }, []);
 
-  const todayLogs = useMemo(
-    () => logs.filter((log) => Boolean(today) && log.study_date === today),
-    [logs, today],
-  );
-  const todayMinutes = todayLogs.reduce((total, log) => total + Math.max(0, Number(log.actual_minutes) || 0), 0);
-  const completedTasks = tasks.filter(isTaskDone);
-  const openTasks = tasks.filter((task) => !isTaskDone(task));
+  const completedTaskCount = tasks.filter(isTaskDone).length;
+  const progress = taskProgress(tasks);
+  const studyToday = logs
+    .filter((log) => Boolean(today) && log.study_date === today)
+    .reduce((total, log) => total + Math.max(0, Number(log.actual_minutes) || 0), 0);
+  const streak = dayStreak(logs, today);
+  const studySeries = useMemo(() => buildStudySeries(logs, today, chartDays), [chartDays, logs, today]);
+  const planTasks = tasks.filter((task) => task.due_date === selectedDate);
+  const visiblePlanTasks = planTasks.slice(0, 4);
+  const upcoming = useMemo(() => getUpcomingRoutine(routine, clock, today), [clock, routine, today]);
 
-  const todayRoutine = useMemo(() => {
-    if (!clock) return [];
-    return routine
-      .filter((item) => routineMatchesDay(item.day, clock.day))
-      .sort(routineSort);
-  }, [clock, routine]);
+  const subjectProgress = useMemo(() => {
+    const totals = new Map<string, number>();
+    for (const log of logs) {
+      const minutes = Math.max(0, Number(log.actual_minutes) || 0);
+      if (!minutes) continue;
+      const label = subjectLabel(subjects, log.subject_id, log.subject_name);
+      totals.set(label, (totals.get(label) || 0) + minutes);
+    }
+    return [...totals.entries()]
+      .map(([name, minutes]) => ({ name, minutes }))
+      .sort((first, second) => second.minutes - first.minutes || first.name.localeCompare(second.name))
+      .slice(0, 4);
+  }, [logs, subjects]);
+  const maxSubjectMinutes = Math.max(...subjectProgress.map((item) => item.minutes), 1);
 
-  const currentRoutine = clock ? todayRoutine.find((item) => isInProgress(item, clock.minutes)) || null : null;
-  const upcomingRoutine = clock && !currentRoutine ? nextRoutineItem(todayRoutine, clock.minutes) : null;
-  const agendaItems = useMemo(() => {
-    if (!clock) return [];
-
-    const upcomingItems = todayRoutine.filter((item) => {
-      const start = routineTimeToMinutes(item.start_time);
-      return start !== null && start >= clock.minutes && item.id !== currentRoutine?.id;
-    });
-    const focusedItems = currentRoutine ? [currentRoutine, ...upcomingItems] : upcomingItems;
-
-    // Once all timed items have passed, retain the end of today's plan instead of
-    // jumping back to the early-morning entries on the dashboard.
-    return (focusedItems.length ? focusedItems : todayRoutine.slice(-4)).slice(0, 4);
-  }, [clock, currentRoutine, todayRoutine]);
-  const upcomingTasks = openTasks
-    .slice()
-    .sort((first, second) => (first.due_date || "9999-12-31").localeCompare(second.due_date || "9999-12-31"))
-    .slice(0, 3);
-
-  const isNewWorkspace = subjects.length === 0 && logs.length === 0 && tasks.length === 0;
-  const heroTitle = isNewWorkspace
-    ? "তোমার পড়ার জায়গাটা আজ থেকেই সাজাও।"
-    : "আজকের পড়াটা সুন্দরভাবে এগিয়ে নাও।";
-  const heroDescription = isNewWorkspace
-    ? "এখানে কোনো চাপ নেই—একটি বিষয়, একটি ছোট রুটিন, আর একটি focus session দিয়েই শুরু করতে পারো।"
-    : "রুটিন, লক্ষ্য আর জরুরি কাজগুলো এক জায়গায় আছে—এখন শুধু পরের ছোট ধাপটা বেছে নাও।";
-
-  const stats = [
-    {
-      icon: Timer,
-      label: "আজকের পড়া",
-      value: today ? formatMinutes(todayMinutes) : "লোড হচ্ছে…",
-      detail: `${todayLogs.length}টি session`,
-      tone: "green",
-    },
-    {
-      icon: CalendarDays,
-      label: "আজকের রুটিন",
-      value: clock ? `${todayRoutine.length}টি` : "—",
-      detail: currentRoutine ? "একটি এখন চলছে" : "সময় ধরে সাজানো",
-      tone: "blue",
-    },
-    {
-      icon: ListChecks,
-      label: "চলমান কাজ",
-      value: `${openTasks.length}টি`,
-      detail: `${completedTasks.length}/${tasks.length}টি সম্পন্ন`,
-      tone: "amber",
-    },
-    {
-      icon: Layers3,
-      label: "ট্র্যাক করা বিষয়",
-      value: `${subjects.length}টি`,
-      detail: subjects.length ? "পড়ার জায়গা প্রস্তুত" : "শুরু করার জন্য যোগ করো",
-      tone: "violet",
-    },
+  const stats: StatCard[] = [
+    { label: "Total Subjects", value: String(subjects.length), detail: subjects.length ? "Live subject list" : "No subjects yet", icon: BookOpen, tone: "subjects" },
+    { label: "Study Time Today", value: formatMinutes(studyToday), detail: today ? dateLabel(today, { weekday: "short", day: "numeric", month: "short" }) : "Loading date…", icon: Clock3, tone: "time" },
+    { label: "Overall Progress", value: progress === null ? "—" : `${progress}%`, detail: tasks.length ? `${completedTaskCount}/${tasks.length} task completed` : "No task data", icon: CheckCircle2, tone: "progress" },
+    { label: "Day Streak", value: `${streak}`, detail: streak === 1 ? "day with study logs" : "days with study logs", icon: Flame, tone: "streak" },
   ];
 
   return (
-    <div className="owner-dashboard">
-      <section className="dashboard-hero" aria-labelledby="dashboard-welcome-title">
-        <div className="dashboard-hero-glow" aria-hidden="true" />
-        <div className="dashboard-hero-content">
-          <div className="dashboard-hero-copy">
-            <p className="dashboard-kicker"><Sparkles size={14} /> নিজের স্টাডি স্পেস</p>
-            <h1 id="dashboard-welcome-title">{heroTitle}</h1>
-            <p className="dashboard-hero-description">{heroDescription}</p>
-            <div className="dashboard-hero-actions">
-              <Link href="/manage/routine" className="dashboard-primary-action">
-                <CalendarDays size={17} /> রুটিন দেখো <ArrowRight size={16} />
-              </Link>
-              <Link href="/manage/academic" className="dashboard-secondary-action">
-                <Plus size={17} /> নতুন পড়া যোগ করো
-              </Link>
-            </div>
-          </div>
-
-          <aside className="dashboard-hero-snapshot" aria-label="আজকের সময় ও পরবর্তী কাজ">
-            <div className="dashboard-clock-row">
-              <span className="dashboard-clock-icon"><Clock3 size={18} /></span>
-              <span>
-                <small>ঢাকা সময়</small>
-                <strong>{clock?.timeLabel || "--:--"}</strong>
-              </span>
-            </div>
-            <p className="dashboard-clock-date">{clock ? `${clock.day} · ${clock.dateLabel}` : "আজকের পরিকল্পনা লোড হচ্ছে"}</p>
-            <div className="dashboard-snapshot-focus">
-              <span>{currentRoutine ? "এখন চলছে" : upcomingRoutine ? "পরবর্তী ফোকাস" : "আজকের সংকেত"}</span>
-              <strong>{currentRoutine?.title || upcomingRoutine?.title || (todayRoutine.length ? "আজকের রুটিন গুছানো আছে" : "রুটিন যোগ করলে এখানে দেখা যাবে")}</strong>
-              {(currentRoutine || upcomingRoutine) && (
-                <small>{formatTime12((currentRoutine || upcomingRoutine)!.start_time)} · {(currentRoutine || upcomingRoutine)!.category}</small>
-              )}
-            </div>
-          </aside>
+    <div className="planner-dashboard">
+      <section className="planner-welcome" aria-labelledby="planner-welcome-title">
+        <div className="planner-welcome-art" aria-hidden="true"><span className="planner-moon" /><span className="planner-hill planner-hill-one" /><span className="planner-hill planner-hill-two" /><span className="planner-stars" /></div>
+        <div className="planner-welcome-copy">
+          <p><Sparkles size={17} /> Personal daily study planner</p>
+          <h1 id="planner-welcome-title">{clock ? greeting(clock.minutes) : "Welcome back!"}</h1>
+          <span>Stay focused, study consistently, and build your next milestone.</span>
         </div>
-        <div className="dashboard-hero-footer">
-          <span><CheckCircle2 size={14} /> {isNewWorkspace ? "একদম নিজের মতো করে শুরু করো" : "তোমার পরিকল্পনা তোমার হাতেই"}</span>
-          <span>{routine.length}টি রুটিন · {subjects.length}টি বিষয় · {tasks.length}টি কাজ</span>
-        </div>
+        <div className="planner-welcome-quote">Dream big.<br /><strong>Study hard.</strong></div>
       </section>
 
-      <section className="dashboard-stats" aria-label="আজকের সংক্ষিপ্ত হিসাব">
-        {stats.map(({ icon: Icon, label, value, detail, tone }) => (
-          <article key={label} className={`dashboard-stat-card dashboard-stat-${tone}`}>
-            <span className="dashboard-stat-icon"><Icon size={18} /></span>
-            <div>
-              <p>{label}</p>
-              <strong>{value}</strong>
-              <small>{detail}</small>
-            </div>
+      <section className="planner-stat-grid" aria-label="Live study overview">
+        {stats.map(({ label, value, detail, icon: Icon, tone }) => (
+          <article key={label} className={`planner-stat-card stat-${tone}`}>
+            <span className="planner-stat-icon"><Icon size={25} /></span>
+            <div><strong>{value}</strong><p>{label}</p><small>{detail}</small></div>
+            <i className="planner-stat-spark" aria-hidden="true" />
           </article>
         ))}
       </section>
 
-      {isNewWorkspace && (
-        <section className="dashboard-starter" aria-labelledby="first-steps-title">
-          <div className="dashboard-section-heading">
-            <div>
-              <p className="dashboard-eyebrow">Start simple</p>
-              <h2 id="first-steps-title">শুরুটা সহজ রাখো</h2>
-              <p>সবকিছু একদিনে বানাতে হবে না। এই তিনটি ছোট ধাপ নিলেই dashboard-টা তোমার জন্য কাজ করতে শুরু করবে।</p>
+      <section className="planner-main-grid">
+        <article className="planner-glass-card planner-overview-card">
+          <header className="planner-card-header">
+            <div><p><BarChart3 size={18} /> Study Progress Overview</p><span>Actual study logs from the selected period</span></div>
+            <div className="planner-overview-actions">
+              <label className="planner-period-select">
+                <select value={chartDays} onChange={(event) => setChartDays(Number(event.target.value) as 7 | 30)} aria-label="Study chart time range">
+                  <option value="30">Last 30 Days</option>
+                  <option value="7">Last 7 Days</option>
+                </select>
+                <ChevronDown size={14} aria-hidden="true" />
+              </label>
+              <Link href="/manage/analytics">Reports <ArrowRight size={15} /></Link>
             </div>
-            <span className="dashboard-time-chip"><Target size={14} /> প্রায় ৫ মিনিট</span>
+          </header>
+          <div className="planner-overview-body">
+            <ProgressRing progress={progress} />
+            <StudyHistoryChart key={chartDays} series={studySeries} />
           </div>
-          <div className="dashboard-steps">
-            <Link href="/manage/academic" className="dashboard-step-card">
-              <span className="dashboard-step-number">01</span>
-              <GraduationCap size={22} />
-              <h3>একটি বিষয় যোগ করো</h3>
-              <p>যে বিষয়টা আজ পড়বে, সেটি আগে রাখো।</p>
-              <span>বিষয় যোগ করতে যাও <ArrowRight size={14} /></span>
-            </Link>
-            <Link href="/manage/routine" className="dashboard-step-card">
-              <span className="dashboard-step-number">02</span>
-              <CalendarDays size={22} />
-              <h3>একটি সময় ঠিক করো</h3>
-              <p>আজকের জন্য মাত্র একটি ছোট study block দিলেই হবে।</p>
-              <span>রুটিন সাজাতে যাও <ArrowRight size={14} /></span>
-            </Link>
-            <Link href="/manage/academic" className="dashboard-step-card">
-              <span className="dashboard-step-number">03</span>
-              <Timer size={22} />
-              <h3>প্রথম session লগ করো</h3>
-              <p>কাজ শেষ হলে সময়টা save করো—অগ্রগতি তৈরি হবে।</p>
-              <span>পড়া ট্র্যাক করতে যাও <ArrowRight size={14} /></span>
-            </Link>
-          </div>
-        </section>
-      )}
+        </article>
 
-      <section className="dashboard-main-grid" aria-label="আজকের পরিকল্পনা">
-        <article className="dashboard-panel dashboard-agenda-panel">
-          <div className="dashboard-panel-heading">
-            <div>
-              <p className="dashboard-eyebrow">Today&apos;s flow</p>
-              <h2>আজকের সময়সূচি</h2>
-            </div>
-            <Link href="/manage/routine" className="dashboard-panel-link">সব দেখো <ArrowRight size={14} /></Link>
-          </div>
-          {clock && agendaItems.length > 0 ? (
-            <div className="dashboard-agenda-list">
-              {agendaItems.map((item) => {
-                const active = isInProgress(item, clock.minutes);
+        <article className="planner-glass-card planner-plan-card">
+          <header className="planner-card-header">
+            <div><p><CalendarDays size={18} /> {selectedDate && selectedDate === today ? "Today’s Study Plan" : "Study Plan"}</p><span>{selectedDate ? dateLabel(selectedDate, { weekday: "long", day: "numeric", month: "short" }) : "Loading date…"}</span></div>
+            <Link href="/manage/tasks">View all <ArrowRight size={15} /></Link>
+          </header>
+          {planTasks.length > 0 ? (
+            <div className="planner-task-list">
+              {visiblePlanTasks.map((task) => {
+                const complete = isTaskDone(task);
                 return (
-                  <div key={item.id} className={`dashboard-agenda-item${active ? " is-active" : ""}`}>
-                    <span className="dashboard-agenda-time">{formatTime12(item.start_time)}</span>
-                    <span className="dashboard-agenda-marker" aria-hidden="true" />
-                    <span className="dashboard-agenda-content">
-                      <strong>{item.title}</strong>
-                      <small>{item.category}{item.subject_name ? ` · ${item.subject_name}` : ""}</small>
-                    </span>
-                    {active && <span className="dashboard-live-pill">এখন</span>}
-                  </div>
+                  <article key={task.id} className={`planner-live-task${complete ? " is-complete" : ""}`}>
+                    <button type="button" disabled={busy || complete} onClick={() => void onCompleteTask(task)} aria-label={complete ? `${task.title} completed` : `${task.title} mark complete`}>
+                      {complete ? <Check size={16} /> : <span />}
+                    </button>
+                    <div><strong>{task.title}</strong><small>{task.task_type}{task.subject_name ? ` · ${task.subject_name}` : ""}</small></div>
+                    {!complete && <Link href="/manage/tasks" aria-label={`Open ${task.title}`}><ChevronRight size={16} /></Link>}
+                  </article>
                 );
               })}
             </div>
           ) : (
-            <div className="dashboard-empty-panel">
-              <span><CalendarDays size={20} /></span>
-              <div>
-                <strong>{clock ? "আজ কোনো রুটিন রাখা হয়নি" : "সময়সূচি লোড হচ্ছে"}</strong>
-                <p>একটি ছোট সময় ঠিক করলেই দিনের flow এখানে দেখা যাবে।</p>
-              </div>
-              <Link href="/manage/routine"><Plus size={15} /> রুটিন যোগ করো</Link>
-            </div>
+            <div className="planner-empty-state compact"><CalendarDays size={22} /><strong>No study plans for this date</strong><span>Live tasks with a matching deadline will appear here.</span><Link href="/manage/tasks"><Plus size={14} /> Add task</Link></div>
           )}
+          <Link href="/manage/academic" className="planner-continue-study"><CirclePlay size={18} /> Continue Study <ArrowRight size={16} /></Link>
         </article>
+      </section>
 
-        <article className="dashboard-panel dashboard-focus-panel">
-          <div className="dashboard-panel-heading">
-            <div>
-              <p className="dashboard-eyebrow">Next up</p>
-              <h2>যা খেয়াল রাখতে হবে</h2>
-            </div>
-            <Link href="/manage/tasks" className="dashboard-panel-link">কাজগুলো <ArrowRight size={14} /></Link>
-          </div>
-          {upcomingTasks.length > 0 ? (
-            <div className="dashboard-task-list">
-              {upcomingTasks.map((task) => (
-                <Link href="/manage/tasks" key={task.id} className="dashboard-task-row">
-                  <span className={`dashboard-task-priority priority-${task.priority === "জরুরি" ? "urgent" : task.priority === "উচ্চ" ? "high" : "normal"}`} />
-                  <span className="dashboard-task-content">
-                    <strong>{task.title}</strong>
-                    <small>{task.task_type} · {dueLabel(task.due_date, today)}</small>
-                  </span>
-                  <ArrowRight size={15} />
-                </Link>
+      <section className="planner-bottom-grid">
+        <article className="planner-glass-card planner-subject-card">
+          <header className="planner-card-header"><div><p><BookOpen size={18} /> Subject-wise Progress</p><span>Based on actual study time</span></div><Link href="/manage/analytics">View all <ArrowRight size={15} /></Link></header>
+          {subjectProgress.length > 0 ? (
+            <div className="planner-subject-list">
+              {subjectProgress.map((subject, index) => (
+                <article key={subject.name}>
+                  <span className={`planner-subject-badge tone-${index % 4}`}><BookOpen size={16} /></span>
+                  <div><strong>{subject.name}</strong><i><b style={{ width: `${subject.minutes / maxSubjectMinutes * 100}%` }} /></i></div>
+                  <small>{formatMinutes(subject.minutes)}</small>
+                </article>
               ))}
             </div>
-          ) : (
-            <div className="dashboard-clear-state">
-              <span><CheckCircle2 size={21} /></span>
-              <div>
-                <strong>এখন কোনো জরুরি কাজ নেই</strong>
-                <p>{todayMinutes > 0 ? `আজ ইতিমধ্যে ${formatMinutes(todayMinutes)} পড়া হয়েছে—ভালো এগোচ্ছো।` : "ছোট একটি কাজ যোগ করলে deadline-টাও চোখে থাকবে।"}</p>
-              </div>
-              <Link href="/manage/tasks"><Plus size={15} /> কাজ যোগ করো</Link>
+          ) : <div className="planner-empty-state mini"><BookOpen size={21} /><strong>কোনো subject study data নেই</strong><Link href="/manage/academic">পড়া যোগ করো <ArrowRight size={14} /></Link></div>}
+        </article>
+
+        <article className="planner-glass-card planner-schedule-card">
+          <header className="planner-card-header"><div><p><CalendarClock size={18} /> Upcoming Schedule</p><span>Next live routine items</span></div><Link href="/manage/routine">View all <ArrowRight size={15} /></Link></header>
+          {upcoming.length > 0 ? (
+            <div className="planner-schedule-list">
+              {upcoming.map((item, index) => (
+                <article key={`${item.id}-${item.dateKey}`}>
+                  <time><strong>{dateFromKey(item.dateKey).getUTCDate()}</strong><span>{dateLabel(item.dateKey, { month: "short" })}</span></time>
+                  <i className={`schedule-dot tone-${index % 4}`} />
+                  <div><strong>{item.title}</strong><span>{formatTimeRange(item.start_time, item.end_time)}</span></div>
+                </article>
+              ))}
             </div>
-          )}
+          ) : <div className="planner-empty-state mini"><CalendarClock size={21} /><strong>কোনো upcoming schedule নেই</strong><Link href="/manage/routine">রুটিন সাজাও <ArrowRight size={14} /></Link></div>}
+        </article>
+
+        <article className="planner-glass-card planner-tools-card">
+          <header className="planner-card-header"><div><p><Sparkles size={18} /> Quick Tools</p><span>Use your existing planner tools</span></div></header>
+          <div className="planner-tool-grid">
+            <Link href="/manage/academic" className="tool-note"><NotebookIcon /><span>Study Notes</span></Link>
+            <Link href="/manage/routine" className="tool-plan"><CalendarDays size={22} /><span>Update Plan</span></Link>
+            <Link href="/manage/analytics" className="tool-reports"><BarChart3 size={22} /><span>View Reports</span></Link>
+            <a href="#planner-settings" className="tool-settings"><Target size={22} /><span>Settings</span></a>
+          </div>
         </article>
       </section>
 
-      <section className="dashboard-section" aria-labelledby="quick-actions-title">
-        <div className="dashboard-section-heading compact">
-          <div>
-            <p className="dashboard-eyebrow">Quick launch</p>
-            <h2 id="quick-actions-title">এখন কী করতে চাও?</h2>
-          </div>
-          <p>কোনো জটিলতা ছাড়াই প্রয়োজনীয় জায়গায় চলে যাও।</p>
-        </div>
-        <div className="dashboard-action-grid">
-          {quickActions.map(({ href, icon: Icon, title, description, tone }) => (
-            <Link key={title} href={href} className={`dashboard-action-card action-${tone}`}>
-              <span className="dashboard-action-icon"><Icon size={20} /></span>
-              <span className="dashboard-action-copy">
-                <strong>{title}</strong>
-                <small>{description}</small>
-              </span>
-              <ArrowRight size={17} className="dashboard-action-arrow" />
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      <section className="dashboard-section" aria-labelledby="daily-focus-title">
-        <div className="dashboard-section-heading compact">
-          <div>
-            <p className="dashboard-eyebrow">Build consistency</p>
-            <h2 id="daily-focus-title">দিনের লক্ষ্য ও রিভিশন</h2>
-          </div>
-          <p>প্রতিদিনের ছোট হিসাবই দীর্ঘমেয়াদি অগ্রগতি তৈরি করে।</p>
-        </div>
-        <div className="dashboard-widgets">
+      <section id="planner-settings" className="planner-dashboard-settings">
+        <div className="planner-settings-title"><span><Trophy size={19} /></span><div><p>Planner controls</p><h2>Goals, review, and your data</h2></div></div>
+        <div className="planner-settings-grid">
           <DailyGoalsPanel logs={logs} />
-          <ReviewReminderPanel
-            logs={logs}
-            busy={busy}
-            onReviewed={onReviewed}
-          />
+          <ReviewReminderPanel logs={logs} busy={busy} onReviewed={onReviewed} />
         </div>
-      </section>
-
-      <section className="dashboard-utility" aria-label="তথ্য নিরাপত্তা ও backup">
         <DataBackupTools onRestored={onRestored} />
       </section>
     </div>
   );
+}
+
+function NotebookIcon() {
+  return <ListChecks size={22} />;
 }
