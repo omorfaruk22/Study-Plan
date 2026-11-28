@@ -3,16 +3,10 @@ import { ObjectId } from "mongodb";
 import { isOwner } from "@/lib/auth-guard";
 import { getDb } from "@/lib/mongodb";
 import { ownerFields, pickOwnerRecord, validateOwnerRecord, type OwnerCollection } from "@/lib/owner-validation";
+import { isSameOrigin } from "@/lib/request-origin";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-function isSameOrigin(request: NextRequest) {
-  const origin = request.headers.get("origin");
-  if (!origin) return true;
-  try { return new URL(origin).origin === request.nextUrl.origin; }
-  catch { return false; }
-}
 
 export async function PATCH(request: NextRequest, context: { params: Promise<{ collection: string; id: string }> }) {
   if (!(await isOwner())) return NextResponse.json({ error: "অনুমতি নেই।" }, { status: 401 });
@@ -43,7 +37,30 @@ export async function DELETE(request: NextRequest, context: { params: Promise<{ 
   if (!Object.prototype.hasOwnProperty.call(ownerFields, collection) || !ObjectId.isValid(id)) return NextResponse.json({ error: "তথ্য পাওয়া যায়নি।" }, { status: 404 });
   const ownerCollection = collection as OwnerCollection;
   try {
-    const result = await (await getDb()).collection(ownerCollection).deleteOne({ _id: new ObjectId(id) });
+    const db = await getDb();
+    const recordId = new ObjectId(id);
+    const collectionRef = db.collection(ownerCollection);
+    const subject = ownerCollection === "subjects"
+      ? await collectionRef.findOne({ _id: recordId }, { projection: { name: 1 } })
+      : null;
+    // Subject references are stored by ID to keep renamed subjects in sync. Before
+    // removing a subject, retain its final name on linked records so old sessions,
+    // tasks, and routines do not turn into “বিষয় উল্লেখ নেই”. Do this first: if
+    // persistence fails, the subject remains available rather than being deleted
+    // with broken references.
+    if (ownerCollection === "subjects" && typeof subject?.name === "string" && subject.name.trim()) {
+      const preservedName = subject.name.trim();
+      const detachSubject = {
+        $set: { subject_id: null, subject_name: preservedName, updatedAt: new Date() },
+      };
+      await Promise.all([
+        db.collection("weekly_routine").updateMany({ subject_id: id }, detachSubject),
+        db.collection("study_logs").updateMany({ subject_id: id }, detachSubject),
+        db.collection("study_tasks").updateMany({ subject_id: id }, detachSubject),
+      ]);
+    }
+
+    const result = await collectionRef.deleteOne({ _id: recordId });
     if (!result.deletedCount) return NextResponse.json({ error: "তথ্য পাওয়া যায়নি।" }, { status: 404 });
     return NextResponse.json({ success: true });
   } catch (error) {

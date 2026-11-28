@@ -3,19 +3,13 @@ import { ObjectId } from "mongodb";
 import { isOwner } from "@/lib/auth-guard";
 import { getDb } from "@/lib/mongodb";
 import { ownerFields, pickOwnerRecord, validateOwnerRecord, type OwnerCollection } from "@/lib/owner-validation";
+import { isSameOrigin } from "@/lib/request-origin";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const collectionNames = Object.keys(ownerFields) as OwnerCollection[];
 const defaultGoals = { academic_minutes: 0, duet_department_minutes: 0, duet_non_department_minutes: 0 };
-
-function isSameOrigin(request: NextRequest) {
-  const origin = request.headers.get("origin");
-  if (!origin) return true;
-  try { return new URL(origin).origin === request.nextUrl.origin; }
-  catch { return false; }
-}
 
 function serialize(document: Record<string, unknown>) {
   const { _id, ...rest } = document;
@@ -104,11 +98,23 @@ export async function POST(request: NextRequest) {
       }
     }
     const now = new Date();
-    await db.collection("study_preferences").updateOne(
-      { key: "daily-goals" },
-      { $set: { ...goals, updatedAt: now }, $setOnInsert: { key: "daily-goals", createdAt: now } },
-      { upsert: true },
-    );
+    await db.collection("study_preferences").bulkWrite([
+      {
+        updateOne: {
+          filter: { key: "daily-goals" },
+          update: { $set: { ...goals, updatedAt: now }, $setOnInsert: { key: "daily-goals", createdAt: now } },
+          upsert: true,
+        },
+      },
+      {
+        // A restored empty routine is intentional; do not bootstrap the sample plan afterwards.
+        updateOne: {
+          filter: { key: "workspace-routine-bootstrap" },
+          update: { $set: { initializedAt: now, updatedAt: now }, $setOnInsert: { key: "workspace-routine-bootstrap", createdAt: now } },
+          upsert: true,
+        },
+      },
+    ]);
     return NextResponse.json({ restored, goals });
   } catch (error) {
     console.error("Restore study backup failed:", error);

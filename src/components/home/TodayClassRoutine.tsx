@@ -2,15 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { ChevronRight, GraduationCap } from "lucide-react";
-import { Hind_Siliguri } from "next/font/google";
 import type { RoutineItem } from "@/lib/types";
 import { getDhakaRoutineClock, routineMatchesDay, routineTimeToMinutes, WEEKDAYS } from "@/lib/routine-time";
-
-const routineFont = Hind_Siliguri({
-  subsets: ["bengali", "latin"],
-  weight: ["400", "500", "600", "700"],
-  display: "swap",
-});
 
 type TodayClassRoutineProps = {
   routine: RoutineItem[];
@@ -53,7 +46,7 @@ export default function TodayClassRoutine({ routine, loading }: TodayClassRoutin
     }), [routine, selectedDay]);
 
   return (
-    <section aria-label={`${selectedDay} এর ক্লাস রুটিন`} className={`${routineFont.className} card min-w-0 flex-1 p-3.5 sm:p-4`}>
+    <section aria-label={`${selectedDay} এর ক্লাস রুটিন`} className="card min-w-0 flex-1 p-3.5 sm:p-4">
       <div className="flex items-center justify-between gap-2">
         <h2 className="flex min-w-0 items-center gap-2 text-lg font-bold text-green-950 sm:text-xl">
           <GraduationCap size={20} className="shrink-0 text-green-600" />

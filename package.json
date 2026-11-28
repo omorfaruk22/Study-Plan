@@ -6,12 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "tsc --noEmit"
+    "lint": "next typegen && tsc --noEmit"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",
     "mongodb": "^7.9.0",
-    "next": "^15.5.0",
+    "next": "^16.4.6",
     "next-auth": "5.0.0-beta.32",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"

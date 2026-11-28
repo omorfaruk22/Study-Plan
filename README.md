@@ -35,7 +35,8 @@ A Next.js + TypeScript personal study management app backed by **MongoDB Atlas**
 |---|---|
 | / | Public home, live clocks, study totals, routine, and subjects |
 | /login | Google owner sign-in |
-| /manage | Weekly routine, class timetable, and current routine view |
+| /manage | Owner dashboard: today’s flow, quick actions, goals, reminders, and backup tools |
+| /manage/routine | Weekly routine, class timetable, and current routine view |
 | /manage/academic | Academic subjects and study logs |
 | /manage/duet | DUET Department and Non-Department subjects and study logs |
 | /manage/tasks | Assignments and exams |
@@ -101,7 +102,7 @@ Open `http://localhost:3000`.
 - `/login` starts Google Owner Login.
 - `/manage` is protected and redirects non-owners to `/login`.
 
-The first successful owner visit to /manage seeds the starter weekly routine only when the routine collection is empty. Add your own Academic and DUET subjects from their management pages.
+The first successful owner visit to `/manage` can seed the starter weekly routine when the routine collection is empty. This happens only once, so deleting every routine later keeps the workspace empty until you add a new one. Add your own Academic and DUET subjects from their management pages.
 
 ## 5. Deploy to Vercel
 1. Push the project to a private GitHub repository (recommended, because project configuration and personal study app details are included).

@@ -19,16 +19,19 @@ const statKeys: Record<StudyTrack, keyof PublicStudyStats> = {
 };
 
 function publicRoutine(doc: Record<string, unknown>) {
-  const { _id, day, start_time, end_time, title, subject_id, subject_name, category, sort_order, notes } = doc;
-  return {
-    id: String(_id), day, start_time, end_time, title, subject_id, subject_name, category, sort_order,
-    ...(category === "ক্লাস রুটিন" ? { notes } : {}),
-  };
+  const { _id, day, start_time, end_time, title, subject_id, subject_name, category, sort_order } = doc;
+  // Notes can contain private details such as a room, teacher, or personal reminder.
+  // The public endpoint intentionally publishes schedule fields only.
+  return { id: String(_id), day, start_time, end_time, title, subject_id, subject_name, category, sort_order };
 }
 
 function publicSubject(doc: Record<string, unknown>) {
   const { _id, name, category, code, color } = doc;
   return { id: String(_id), name, category, code, color };
+}
+
+function fallbackRoutine() {
+  return defaultRoutine.map(({ notes: _notes, ...item }, index) => ({ ...item, id: `sample-routine-${index}` }));
 }
 
 function getStudyTrack(log: Record<string, unknown>, subjectCategories: Map<string, string>): StudyTrack | null {
@@ -68,14 +71,14 @@ export async function GET() {
     ]);
 
     return NextResponse.json({
-      routine: routine.length ? routine.map(publicRoutine) : defaultRoutine.map((item, i) => ({ ...item, id: `sample-routine-${i}`, notes: null })),
+      routine: routine.length ? routine.map(publicRoutine) : fallbackRoutine(),
       subjects: subjects.map(publicSubject),
       studyStats: summarizeStudy(logs, subjects),
     });
   } catch (error) {
     console.error("Public data unavailable:", error);
     return NextResponse.json({
-      routine: defaultRoutine.map((item, i) => ({ ...item, id: `sample-routine-${i}`, notes: null })),
+      routine: fallbackRoutine(),
       subjects: [],
       studyStats: emptyStudyStats,
       demoMode: true,

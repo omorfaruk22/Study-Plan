@@ -17,7 +17,7 @@ const emptyStudyStats: PublicStudyStats = {
   duet_non_department_minutes: 0,
 };
 
-const sampleRoutine = defaultRoutine.map((item, index) => ({
+const sampleRoutine = defaultRoutine.map(({ notes: _notes, ...item }, index) => ({
   ...item,
   id: `sample-routine-${index}`,
 })) as RoutineItem[];
