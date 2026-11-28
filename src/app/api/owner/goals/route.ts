@@ -1,19 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isOwner } from "@/lib/auth-guard";
 import { getDb } from "@/lib/mongodb";
+import { isSameOrigin } from "@/lib/request-origin";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const defaultGoals = { academic_minutes: 0, duet_department_minutes: 0, duet_non_department_minutes: 0 };
 const goalKeys = Object.keys(defaultGoals) as (keyof typeof defaultGoals)[];
-
-function isSameOrigin(request: NextRequest) {
-  const origin = request.headers.get("origin");
-  if (!origin) return true;
-  try { return new URL(origin).origin === request.nextUrl.origin; }
-  catch { return false; }
-}
 
 export async function GET() {
   if (!(await isOwner())) return NextResponse.json({ error: "অনুমতি নেই।" }, { status: 401 });

@@ -2,16 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { isOwner } from "@/lib/auth-guard";
 import { getDb } from "@/lib/mongodb";
 import { ownerFields, pickOwnerRecord, validateOwnerRecord, type OwnerCollection } from "@/lib/owner-validation";
+import { isSameOrigin } from "@/lib/request-origin";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-function isSameOrigin(request: NextRequest) {
-  const origin = request.headers.get("origin");
-  if (!origin) return true;
-  try { return new URL(origin).origin === request.nextUrl.origin; }
-  catch { return false; }
-}
 
 export async function POST(request: NextRequest, context: { params: Promise<{ collection: string }> }) {
   if (!(await isOwner())) return NextResponse.json({ error: "অনুমতি নেই।" }, { status: 401 });

@@ -53,7 +53,17 @@ function withoutDeletedItem(workspace: OwnerWorkspaceData, collection: OwnerColl
     case "weekly_routine": return { ...workspace, routine: workspace.routine.filter((item) => item.id !== id) };
     case "study_logs": return { ...workspace, logs: workspace.logs.filter((item) => item.id !== id) };
     case "study_tasks": return { ...workspace, tasks: workspace.tasks.filter((item) => item.id !== id) };
-    case "subjects": return { ...workspace, subjects: workspace.subjects.filter((item) => item.id !== id) };
+    case "subjects": {
+      const removedSubject = workspace.subjects.find((item) => item.id === id);
+      const preservedName = removedSubject?.name?.trim() || null;
+      return {
+        ...workspace,
+        subjects: workspace.subjects.filter((item) => item.id !== id),
+        routine: workspace.routine.map((item) => item.subject_id === id ? { ...item, subject_id: null, subject_name: preservedName || item.subject_name || null } : item),
+        logs: workspace.logs.map((item) => item.subject_id === id ? { ...item, subject_id: null, subject_name: preservedName || item.subject_name || null } : item),
+        tasks: workspace.tasks.map((item) => item.subject_id === id ? { ...item, subject_id: null, subject_name: preservedName || item.subject_name || null } : item),
+      };
+    }
   }
 }
 

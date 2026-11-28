@@ -147,6 +147,19 @@ export default function OwnerDashboard({ routine, logs, tasks, subjects, busy, o
 
   const currentRoutine = clock ? todayRoutine.find((item) => isInProgress(item, clock.minutes)) || null : null;
   const upcomingRoutine = clock && !currentRoutine ? nextRoutineItem(todayRoutine, clock.minutes) : null;
+  const agendaItems = useMemo(() => {
+    if (!clock) return [];
+
+    const upcomingItems = todayRoutine.filter((item) => {
+      const start = routineTimeToMinutes(item.start_time);
+      return start !== null && start >= clock.minutes && item.id !== currentRoutine?.id;
+    });
+    const focusedItems = currentRoutine ? [currentRoutine, ...upcomingItems] : upcomingItems;
+
+    // Once all timed items have passed, retain the end of today's plan instead of
+    // jumping back to the early-morning entries on the dashboard.
+    return (focusedItems.length ? focusedItems : todayRoutine.slice(-4)).slice(0, 4);
+  }, [clock, currentRoutine, todayRoutine]);
   const upcomingTasks = openTasks
     .slice()
     .sort((first, second) => (first.due_date || "9999-12-31").localeCompare(second.due_date || "9999-12-31"))
@@ -292,9 +305,9 @@ export default function OwnerDashboard({ routine, logs, tasks, subjects, busy, o
             </div>
             <Link href="/manage/routine" className="dashboard-panel-link">সব দেখো <ArrowRight size={14} /></Link>
           </div>
-          {clock && todayRoutine.length > 0 ? (
+          {clock && agendaItems.length > 0 ? (
             <div className="dashboard-agenda-list">
-              {todayRoutine.slice(0, 4).map((item) => {
+              {agendaItems.map((item) => {
                 const active = isInProgress(item, clock.minutes);
                 return (
                   <div key={item.id} className={`dashboard-agenda-item${active ? " is-active" : ""}`}>
