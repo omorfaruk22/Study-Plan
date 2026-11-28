@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { type MouseEvent, useEffect, useRef } from "react";
-import { BarChart3, BookOpen, CalendarDays, ClipboardList, LayoutDashboard, RefreshCw, type LucideIcon } from "lucide-react";
+import { BarChart3, BookOpen, CalendarDays, ClipboardList, LayoutDashboard, RefreshCw, Settings, type LucideIcon } from "lucide-react";
 
-export type WorkspaceTab = "dashboard" | "routine" | "academic" | "duet" | "tasks" | "analytics";
+export type WorkspaceTab = "dashboard" | "calendar" | "routine" | "academic" | "duet" | "tasks" | "analytics" | "progress" | "settings";
 
 type WorkspaceTabsProps = {
   activeTab: WorkspaceTab;
@@ -11,11 +11,14 @@ type WorkspaceTabsProps = {
 
 const tabs: { id: WorkspaceTab; href: string; label: string; icon: LucideIcon }[] = [
   { id: "dashboard", href: "/manage", label: "ড্যাশবোর্ড", icon: LayoutDashboard },
+  { id: "calendar", href: "/manage/calendar", label: "Calendar", icon: CalendarDays },
   { id: "routine", href: "/manage/routine", label: "রুটিন", icon: CalendarDays },
   { id: "academic", href: "/manage/academic", label: "Academic", icon: BookOpen },
   { id: "duet", href: "/manage/duet", label: "DUET", icon: BookOpen },
   { id: "tasks", href: "/manage/tasks", label: "কাজ", icon: ClipboardList },
+  { id: "progress", href: "/manage/progress", label: "Progress", icon: BarChart3 },
   { id: "analytics", href: "/manage/analytics", label: "পরিসংখ্যান", icon: BarChart3 },
+  { id: "settings", href: "/manage/settings", label: "Settings", icon: Settings },
 ];
 
 function switchSection(event: MouseEvent<HTMLAnchorElement>, href: string) {

@@ -18,12 +18,9 @@ import {
   Plus,
   Settings,
   Sparkles,
-  Trophy,
   type LucideIcon,
 } from "lucide-react";
-import DataBackupTools from "@/components/manage/DataBackupTools";
-import DailyGoalsPanel from "@/components/manage/DailyGoalsPanel";
-import ReviewReminderPanel from "@/components/manage/ReviewReminderPanel";
+import PlannerSettingsPanel from "@/components/manage/PlannerSettingsPanel";
 import { formatMinutes, subjectLabel } from "@/components/manage/analytics/chart-utils";
 import { addDaysToDateKey, formatTimeRange, getDhakaDateKey, getDhakaRoutineClock, getDhakaWeekdayForDateKey, routineMatchesDay, routineTimeToMinutes, type DhakaRoutineClock } from "@/lib/routine-time";
 import { resolveStudyTrack } from "@/lib/study-track";
@@ -389,19 +386,12 @@ export default function OwnerDashboard({ routine, logs, tasks, subjects, selecte
             <Link href="/manage/academic" className="tool-note"><NotebookPen size={22} /><span>Add Note</span></Link>
             <Link href="/manage/routine" className="tool-plan"><CalendarDays size={22} /><span>Update Plan</span></Link>
             <Link href="/manage/analytics" className="tool-reports"><BarChart3 size={22} /><span>View Reports</span></Link>
-            <a href="#planner-settings" className="tool-settings"><Settings size={22} /><span>Settings</span></a>
+            <Link href="/manage/settings" className="tool-settings"><Settings size={22} /><span>Settings</span></Link>
           </div>
         </article>
       </section>
 
-      <section id="planner-settings" className="planner-dashboard-settings">
-        <div className="planner-settings-title"><span><Trophy size={19} /></span><div><p>Planner controls</p><h2>Goals, review, and your data</h2></div></div>
-        <div className="planner-settings-grid">
-          <DailyGoalsPanel logs={logs} />
-          <ReviewReminderPanel logs={logs} busy={busy} onReviewed={onReviewed} />
-        </div>
-        <DataBackupTools onRestored={onRestored} />
-      </section>
+      <PlannerSettingsPanel id="planner-settings" logs={logs} busy={busy} onRestored={onRestored} onReviewed={onReviewed} />
     </div>
   );
 }

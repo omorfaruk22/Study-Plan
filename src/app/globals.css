@@ -1033,6 +1033,176 @@ button { cursor:pointer; }
   .planner-section-view .planner-manager-grid > .card { border-radius:15px; }
 }
 
+/* Dedicated management destinations and theme-safe workspace controls. */
+.planner-shell { overflow-x: clip; }
+.planner-shell.is-theme-dark { color-scheme: dark; }
+.planner-shell.is-theme-light { color-scheme: light; }
+.planner-mobile-close { display: none; }
+.planner-shell :is(a, button, input, select, textarea):focus-visible { outline: 3px solid rgba(189,255,99,.78); outline-offset: 3px; }
+
+.planner-calendar-workspace .planner-routine-live { min-height: 100%; }
+.planner-progress-workspace { display: grid; gap: 16px; }
+.planner-progress-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(0,230,118,.23);
+  border-radius: 18px;
+  padding: 18px 20px;
+  background: linear-gradient(115deg, rgba(6,42,22,.88), rgba(5,21,12,.88));
+  box-shadow: inset 0 1px rgba(255,255,255,.065), 0 14px 31px rgba(0,0,0,.22);
+}
+.planner-progress-header > div:first-child { min-width: 0; }
+.planner-progress-header p { margin: 0; color: #65f69b; font-size: 10px; font-weight: 850; letter-spacing: .14em; text-transform: uppercase; }
+.planner-progress-header h2 { margin: 5px 0 0; color: #effff3; font-size: clamp(21px,2.4vw,28px); font-weight: 900; letter-spacing: -.035em; }
+.planner-progress-header > div:first-child > span { display: block; margin-top: 6px; color: #a7c0ad; font-size: 12px; line-height: 1.5; }
+.planner-progress-summary { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); width: min(100%, 530px); flex: 0 1 530px; gap: 8px; }
+.planner-progress-summary > div { min-width: 0; border: 1px solid rgba(0,230,118,.16); border-radius: 12px; padding: 10px; background: rgba(0,230,118,.06); }
+.planner-progress-summary span,
+.planner-progress-summary strong { display: block; overflow-wrap: anywhere; }
+.planner-progress-summary span { color: #a8c8b1; font-size: 9px; font-weight: 800; line-height: 1.3; }
+.planner-progress-summary strong { margin-top: 5px; color: #effff3; font-family: "Noto Sans Bengali", "Hind Siliguri", Arial, sans-serif; font-size: clamp(13px,1.2vw,16px); font-weight: 850; line-height: 1.25; }
+
+.planner-appearance-panel {
+  display: grid;
+  grid-template-columns: 42px minmax(0,1fr) auto;
+  align-items: center;
+  gap: 11px;
+  border: 1px solid rgba(0,230,118,.19);
+  border-radius: 15px;
+  padding: 12px;
+  background: rgba(0,230,118,.055);
+}
+.planner-appearance-icon { display: grid; width: 42px; height: 42px; place-items: center; border-radius: 12px; color: #baffcf; background: rgba(0,230,118,.13); }
+.planner-appearance-panel > div { min-width: 0; }
+.planner-appearance-panel p { margin: 0; color: #7dfaab; font-size: 9px; font-weight: 850; letter-spacing: .12em; text-transform: uppercase; }
+.planner-appearance-panel h3 { margin: 3px 0 0; color: #effff3; font-size: 14px; font-weight: 850; }
+.planner-appearance-panel > div > span { display: block; margin-top: 3px; color: #9cb6a3; font-size: 11px; line-height: 1.45; }
+.planner-appearance-toggle { flex: 0 0 auto; min-height: 37px; padding: 8px 11px; font-size: 11px; }
+
+/* A light preference keeps the original dashboard composition, while every text and card contrast remains intentional. */
+.planner-light .planner-shell.is-theme-light { color: #173a23; }
+.planner-light .planner-section-heading { border-color: rgba(0,145,75,.18); background: linear-gradient(100deg, rgba(255,255,255,.96), rgba(241,251,244,.92)); box-shadow: 0 13px 30px rgba(10,54,25,.09); }
+.planner-light .planner-section-heading p { color: #087a3e; }
+.planner-light .planner-section-heading h1 { color: #123a22; }
+.planner-light .planner-section-heading span { color: #55725e; }
+.planner-light .planner-section-view .planner-manager .card,
+.planner-light .planner-section-view .planner-manager-grid > .card,
+.planner-light .planner-section-view .planner-routine-live.card { border-color: rgba(0,145,75,.18); background: rgba(255,255,255,.94); box-shadow: 0 13px 30px rgba(10,54,25,.09); }
+.planner-light .planner-section-view .planner-manager .card h2,
+.planner-light .planner-section-view .planner-manager-grid > .card h2,
+.planner-light .planner-manager-analytics > header h2 { color: #123b22 !important; }
+.planner-light .planner-manager-analytics > header { border-color: rgba(0,145,75,.2) !important; background: linear-gradient(115deg, rgba(236,255,242,.94), rgba(247,255,249,.96)) !important; box-shadow: 0 13px 30px rgba(10,54,25,.09); }
+.planner-light .planner-manager-analytics > header p { color: #4e6d58 !important; }
+.planner-light .planner-manager-hero { border-color: rgba(0,145,75,.2) !important; background: linear-gradient(115deg, rgba(236,255,242,.94), rgba(247,255,249,.96)) !important; box-shadow: 0 13px 30px rgba(10,54,25,.09); }
+.planner-light .planner-section-view .planner-manager .field,
+.planner-light .planner-section-view .planner-manager-grid .field { border-color: #c9dfce; color: #173a23; background: #fff; box-shadow: none; }
+.planner-light .planner-section-view .planner-manager .field::placeholder,
+.planner-light .planner-section-view .planner-manager-grid .field::placeholder { color: #6e8877; }
+.planner-light .planner-section-view .planner-manager select.field option,
+.planner-light .planner-section-view .planner-manager-grid select.field option { color: #173a23; background: #fff; }
+.planner-light .planner-section-view .planner-manager .label,
+.planner-light .planner-section-view .planner-manager-grid .label { color: #456a52; }
+.planner-light .planner-section-view .planner-manager .btn-plain,
+.planner-light .planner-section-view .planner-manager-grid .btn-plain { color: #145c32; border-color: rgba(0,145,75,.24); background: rgba(0,190,90,.07); }
+.planner-light .planner-section-view .planner-manager .btn-plain:hover,
+.planner-light .planner-section-view .planner-manager-grid .btn-plain:hover { color: #0b4726; border-color: rgba(0,145,75,.42); background: rgba(0,190,90,.14); }
+.planner-light .planner-section-view .planner-manager [class~="bg-slate-100"],
+.planner-light .planner-section-view .planner-manager [class~="bg-slate-50"] { border-color: #dcebe0; background: #f7fbf8 !important; }
+.planner-light .planner-section-view .planner-manager [class~="bg-green-50"],
+.planner-light .planner-section-view .planner-manager [class~="bg-green-50/50"],
+.planner-light .planner-section-view .planner-manager [class~="bg-green-50/70"] { background: #effaf2 !important; }
+.planner-light .planner-section-view .planner-manager [class~="border-slate-100"],
+.planner-light .planner-section-view .planner-manager-grid [class~="border-slate-100"] { border-color: #dcebe0 !important; }
+.planner-light .planner-section-view .planner-manager article[class~="border-slate-100"],
+.planner-light .planner-section-view .planner-manager-grid article[class~="border-slate-100"] { background: #fbfefb; }
+.planner-light .planner-section-view .planner-manager article[class~="border-slate-100"]:hover,
+.planner-light .planner-section-view .planner-manager-grid article[class~="border-slate-100"]:hover { border-color: rgba(0,145,75,.28) !important; background: #f0faf3; }
+.planner-light .planner-section-view .planner-manager [class~="text-green-950"],
+.planner-light .planner-section-view .planner-manager-grid [class~="text-green-950"] { color: #123b22 !important; }
+.planner-light .planner-section-view .planner-manager [class~="text-green-700"],
+.planner-light .planner-section-view .planner-manager-grid [class~="text-green-700"] { color: #087a3e !important; }
+.planner-light .planner-section-view .planner-manager [class~="text-slate-800"],
+.planner-light .planner-section-view .planner-manager-grid [class~="text-slate-800"] { color: #273d2f !important; }
+.planner-light .planner-section-view .planner-manager [class~="text-slate-700"],
+.planner-light .planner-section-view .planner-manager-grid [class~="text-slate-700"] { color: #3d5946 !important; }
+.planner-light .planner-section-view .planner-manager [class~="text-slate-600"],
+.planner-light .planner-section-view .planner-manager-grid [class~="text-slate-600"],
+.planner-light .planner-section-view .planner-manager [class~="text-slate-500"],
+.planner-light .planner-section-view .planner-manager-grid [class~="text-slate-500"] { color: #587263 !important; }
+.planner-light .planner-section-view .planner-manager [class~="text-slate-400"],
+.planner-light .planner-section-view .planner-manager-grid [class~="text-slate-400"] { color: #6f8777 !important; }
+.planner-light .planner-section-view .planner-manager [role="listbox"],
+.planner-light .planner-section-view .planner-manager-grid [role="listbox"] { border-color: #b9d8c1; background: #fff !important; box-shadow: 0 18px 35px rgba(10,54,25,.16); }
+.planner-light .planner-section-view .planner-manager [role="listbox"] button:not([class*="bg-green-700"]) { color: #173a23; }
+.planner-light .planner-section-view .planner-manager [role="listbox"] button:hover { background: #ecf9f0 !important; }
+.planner-light .planner-progress-header { border-color: rgba(0,145,75,.2); background: linear-gradient(115deg, rgba(236,255,242,.94), rgba(247,255,249,.96)); box-shadow: 0 13px 30px rgba(10,54,25,.09); }
+.planner-light .planner-progress-header p { color: #087a3e; }
+.planner-light .planner-progress-header h2 { color: #123b22; }
+.planner-light .planner-progress-header > div:first-child > span { color: #4e6d58; }
+.planner-light .planner-progress-summary > div { border-color: rgba(0,145,75,.17); background: rgba(0,190,90,.075); }
+.planner-light .planner-progress-summary span { color: #4d7059; }
+.planner-light .planner-progress-summary strong { color: #123b22; }
+.planner-light .planner-appearance-panel { border-color: rgba(0,145,75,.19); background: rgba(0,190,90,.07); }
+.planner-light .planner-appearance-icon { color: #087a3e; background: rgba(0,190,90,.12); }
+.planner-light .planner-appearance-panel p { color: #087a3e; }
+.planner-light .planner-appearance-panel h3 { color: #123b22; }
+.planner-light .planner-appearance-panel > div > span { color: #55725e; }
+.planner-light .planner-dashboard-settings { border-color: rgba(0,145,75,.18); background: rgba(255,255,255,.88); }
+.planner-light .planner-settings-title p { color: #087a3e; }
+.planner-light .planner-stat-card p { color: #234c31; }
+.planner-light .planner-stat-card small,
+.planner-light .planner-card-header span,
+.planner-light .planner-live-task small,
+.planner-light .planner-subject-list small span,
+.planner-light .planner-schedule-list span { color: #55725e; }
+.planner-light .planner-empty-state strong,
+.planner-light .planner-chart-empty strong { color: #173d25; }
+.planner-light .planner-empty-state span,
+.planner-light .planner-chart-empty span { color: #55725e; }
+.planner-light .planner-empty-state a { color: #087a3e; border-color: rgba(0,145,75,.25); background: rgba(0,190,90,.08); }
+.planner-light .planner-subject-list small { color: #173d25; }
+.planner-light .planner-schedule-list time { color: #173d25; background: linear-gradient(145deg, #e7f6ea, #f7fcf8); }
+.planner-light .planner-schedule-list time span { color: #55725e; }
+.planner-light .planner-tool-grid a { border-color: rgba(0,145,75,.18); background: rgba(0,190,90,.045); }
+.planner-light .tool-note { color: #087a3e !important; background: linear-gradient(145deg, rgba(0,145,75,.13), rgba(0,190,90,.045)) !important; }
+.planner-light .tool-plan { color: #0877a2 !important; background: linear-gradient(145deg, rgba(0,119,170,.12), rgba(0,178,255,.04)) !important; }
+.planner-light .tool-reports { color: #9a6500 !important; background: linear-gradient(145deg, rgba(176,120,0,.13), rgba(255,180,0,.045)) !important; }
+.planner-light .tool-settings { color: #7442a7 !important; background: linear-gradient(145deg, rgba(116,66,167,.12), rgba(176,81,255,.04)) !important; }
+
+@media (max-width: 700px) {
+  .planner-shell { overflow-x: clip; }
+  .planner-main { min-width: 0; }
+  .planner-topbar { display: grid; grid-template-columns: 42px minmax(0,1fr) auto; align-items: center; }
+  .planner-topbar-actions { min-width: 0; flex: 0 0 auto; }
+  .planner-mobile-close { display: grid; width: 34px; height: 34px; flex: 0 0 auto; place-items: center; border: 1px solid rgba(0,230,118,.2); border-radius: 10px; color: #baffcf; background: rgba(0,230,118,.075); }
+  .planner-light .planner-mobile-close { color: #087a3e; border-color: rgba(0,145,75,.2); background: rgba(0,190,90,.08); }
+  .planner-progress-header { align-items: stretch; flex-direction: column; padding: 16px; }
+  .planner-progress-summary { width: 100%; flex-basis: auto; }
+  .planner-appearance-panel { grid-template-columns: 40px minmax(0,1fr); }
+  .planner-appearance-icon { width: 40px; height: 40px; }
+  .planner-appearance-toggle { grid-column: 1 / -1; width: 100%; }
+}
+@media (max-width: 420px) {
+  .planner-main { padding-inline: 10px; }
+  .planner-topbar { gap: 6px; }
+  .planner-mobile-menu { width: 40px; height: 40px; }
+  .planner-icon-button { width: 37px; height: 37px; }
+  .planner-date-picker { width: 37px; min-height: 37px; }
+  .planner-search { gap: 6px; padding-inline: 9px; }
+  .planner-search > svg { width: 18px; }
+  .planner-progress-summary > div { padding: 8px; }
+  .planner-progress-summary strong { font-size: 12px; }
+}
+@media (max-width: 350px) {
+  .planner-date-picker { display: none; }
+  .planner-progress-summary { grid-template-columns: 1fr; }
+  .planner-progress-summary > div { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+  .planner-progress-summary strong { margin-top: 0; text-align: right; }
+}
+
 /* Public study homepage: a separate black and neon-green visual system. */
 .public-site {
   --public-neon:#19f581;

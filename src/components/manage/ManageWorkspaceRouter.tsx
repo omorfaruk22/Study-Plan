@@ -7,11 +7,14 @@ import type { WorkspaceTab } from "@/components/manage/WorkspaceTabs";
 
 const sections: Record<string, WorkspaceTab> = {
   "/manage": "dashboard",
+  "/manage/calendar": "calendar",
   "/manage/routine": "routine",
   "/manage/academic": "academic",
   "/manage/duet": "duet",
   "/manage/tasks": "tasks",
+  "/manage/progress": "progress",
   "/manage/analytics": "analytics",
+  "/manage/settings": "settings",
 };
 
 export default function ManageWorkspaceRouter({ profile }: { profile: PlannerProfile }) {

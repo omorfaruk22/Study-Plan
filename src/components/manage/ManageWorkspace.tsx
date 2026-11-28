@@ -4,10 +4,13 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import AcademicManager from "@/components/manage/AcademicManager";
 import AnalyticsDashboard from "@/components/manage/analytics/AnalyticsDashboard";
+import CalendarWorkspace from "@/components/manage/CalendarWorkspace";
 import DeleteConfirmDialog from "@/components/manage/DeleteConfirmDialog";
 import DuetManager from "@/components/manage/DuetManager";
 import OwnerDashboard from "@/components/manage/OwnerDashboard";
 import PlannerLayout, { type PlannerProfile } from "@/components/manage/PlannerLayout";
+import PlannerSettingsPanel from "@/components/manage/PlannerSettingsPanel";
+import ProgressWorkspace from "@/components/manage/ProgressWorkspace";
 import RoutineManager from "@/components/manage/RoutineManager";
 import TasksManager from "@/components/manage/TasksManager";
 import { MongoConnectionError, SuccessToast } from "@/components/manage/WorkspaceFeedback";
@@ -24,6 +27,11 @@ type ManageWorkspaceProps = {
 const emptyWorkspace: OwnerWorkspaceData = { routine: [], logs: [], tasks: [], subjects: [] };
 
 const sectionMeta: Record<Exclude<WorkspaceTab, "dashboard">, { eyebrow: string; title: string; description: string }> = {
+  calendar: {
+    eyebrow: "Study calendar",
+    title: "ক্যালেন্ডার ও আজকের রুটিন",
+    description: "দিনভিত্তিক পড়ার হিসাব ও আজকের সময়সূচি একসাথে দেখো।",
+  },
   routine: {
     eyebrow: "Weekly planning",
     title: "রুটিন ও ক্লাস সাজাও",
@@ -44,10 +52,20 @@ const sectionMeta: Record<Exclude<WorkspaceTab, "dashboard">, { eyebrow: string;
     title: "কাজ ও ডেডলাইন",
     description: "যা জরুরি, তা চোখের সামনে রাখো।",
   },
+  progress: {
+    eyebrow: "Study progress",
+    title: "তোমার অগ্রগতি",
+    description: "সময়, বিষয় এবং কাজের লাইভ অগ্রগতি বুঝে পরের পদক্ষেপ নাও।",
+  },
   analytics: {
     eyebrow: "Study insights",
     title: "অগ্রগতির চিত্র",
     description: "সময়, ধারাবাহিকতা ও কাজের অবস্থা বুঝে পরের পদক্ষেপ নাও।",
+  },
+  settings: {
+    eyebrow: "Planner settings",
+    title: "Goals, review ও data",
+    description: "দৈনিক লক্ষ্য, review reminder এবং নিজের data নিরাপদে নিয়ন্ত্রণ করো।",
   },
 };
 
@@ -92,6 +110,8 @@ export default function ManageWorkspace({ activeTab, profile }: ManageWorkspaceP
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
+  const [darkMode, setDarkMode] = useState(true);
+  const [themeReady, setThemeReady] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<{ collection: OwnerCollection; id: string; itemName: string } | null>(null);
 
   const load = useCallback(async () => {
@@ -101,6 +121,23 @@ export default function ManageWorkspace({ activeTab, profile }: ManageWorkspaceP
 
   useEffect(() => {
     setSelectedDate(getDhakaDateKey());
+  }, []);
+
+  useEffect(() => {
+    setDarkMode(window.localStorage.getItem("study-plan:dark-mode") !== "false");
+    setThemeReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (!themeReady) return;
+    document.body.classList.toggle("planner-light", !darkMode);
+    document.body.classList.toggle("theme-dark-green", darkMode);
+    window.localStorage.setItem("study-plan:dark-mode", String(darkMode));
+  }, [darkMode, themeReady]);
+
+  useEffect(() => () => {
+    document.body.classList.remove("planner-light");
+    document.body.classList.add("theme-dark-green");
   }, []);
 
   useEffect(() => {
@@ -239,6 +276,8 @@ export default function ManageWorkspace({ activeTab, profile }: ManageWorkspaceP
         selectedDate={selectedDate}
         onSelectedDateChange={setSelectedDate}
         onRefresh={() => void refresh()}
+        darkMode={darkMode}
+        onToggleDarkMode={() => setDarkMode((current) => !current)}
       >
         {error && <div className="planner-error-banner" role="alert">{error}</div>}
         {activeTab === "dashboard" ? (
@@ -269,6 +308,11 @@ export default function ManageWorkspace({ activeTab, profile }: ManageWorkspaceP
               <span>{currentSection?.description}</span>
             </header>
             <div key={activeTab} className="manage-section-enter">
+              {activeTab === "calendar" && <CalendarWorkspace
+                logs={workspace.logs}
+                routine={workspace.routine}
+                subjects={workspace.subjects}
+              />}
               {activeTab === "routine" && <RoutineManager
                 routine={workspace.routine}
                 subjects={workspace.subjects}
@@ -308,7 +352,24 @@ export default function ManageWorkspace({ activeTab, profile }: ManageWorkspaceP
                 onSave={(item: StudyTaskInput, id?: string) => saveRecord("study_tasks", item, id, id ? "কাজ আপডেট হয়েছে।" : "নতুন কাজ যোগ হয়েছে।")}
                 onDelete={(id) => requestDelete("study_tasks", id)}
               />}
+              {activeTab === "progress" && <ProgressWorkspace logs={workspace.logs} tasks={workspace.tasks} subjects={workspace.subjects} />}
               {activeTab === "analytics" && <AnalyticsDashboard logs={workspace.logs} tasks={workspace.tasks} subjects={workspace.subjects} />}
+              {activeTab === "settings" && <PlannerSettingsPanel
+                logs={workspace.logs}
+                busy={busy}
+                darkMode={darkMode}
+                onToggleDarkMode={() => setDarkMode((current) => !current)}
+                onRestored={load}
+                onReviewed={(log, reviewDate, nextReview) => {
+                  const { id, ...data } = log;
+                  return saveRecord(
+                    "study_logs",
+                    { ...data, last_reviewed_date: reviewDate, review_due_date: nextReview },
+                    id,
+                    "আবার পড়ার হিসাব হয়েছে; ৩ দিন পরে আবার মনে করাবো।",
+                  );
+                }}
+              />}
             </div>
           </section>
         )}

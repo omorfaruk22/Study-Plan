@@ -46,6 +46,8 @@ type PlannerLayoutProps = {
   selectedDate: string;
   onSelectedDateChange: (value: string) => void;
   onRefresh: () => void;
+  darkMode: boolean;
+  onToggleDarkMode: () => void;
   children: ReactNode;
 };
 
@@ -54,7 +56,6 @@ type NavItem = {
   href: string;
   tab: WorkspaceTab;
   icon: LucideIcon;
-  hash?: string;
 };
 
 type SearchResult = {
@@ -69,10 +70,10 @@ const navigation: NavItem[] = [
   { label: "My Plan", href: "/manage/tasks", tab: "tasks", icon: CalendarDays },
   { label: "Subjects", href: "/manage/academic", tab: "academic", icon: BookOpen },
   { label: "DUET Prep", href: "/manage/duet", tab: "duet", icon: GraduationCap },
-  { label: "Progress", href: "/manage/analytics", tab: "analytics", icon: Target },
-  { label: "Calendar", href: "/manage/routine", tab: "routine", icon: CalendarDays },
+  { label: "Progress", href: "/manage/progress", tab: "progress", icon: Target },
+  { label: "Calendar", href: "/manage/calendar", tab: "calendar", icon: CalendarDays },
   { label: "Notes", href: "/manage/academic", tab: "academic", icon: NotebookPen },
-  { label: "Settings", href: "/manage", tab: "dashboard", icon: Settings, hash: "planner-settings" },
+  { label: "Settings", href: "/manage/settings", tab: "settings", icon: Settings },
 ];
 
 function isTaskDone(status: string) {
@@ -123,12 +124,12 @@ function SidebarProfile({ profile, collapsed }: { profile: PlannerProfile; colla
 function SidebarNavigation({ activeTab, collapsed, onNavigate }: { activeTab: WorkspaceTab; collapsed: boolean; onNavigate: () => void }) {
   return (
     <nav className="planner-side-nav" aria-label="Study planner navigation">
-      {navigation.map(({ label, href, tab, icon: Icon, hash }) => {
-        const active = activeTab === tab && !["Notes", "Settings"].includes(label);
+      {navigation.map(({ label, href, tab, icon: Icon }) => {
+        const active = activeTab === tab && label !== "Notes";
         return (
           <Link
             key={label}
-            href={hash ? `${href}#${hash}` : href}
+            href={href}
             aria-current={active ? "page" : undefined}
             onClick={onNavigate}
             title={collapsed ? label : undefined}
@@ -253,50 +254,36 @@ function PlannerNotifications({ workspace }: { workspace: OwnerWorkspaceData }) 
   );
 }
 
-export default function PlannerLayout({ activeTab, profile, workspace, selectedDate, onSelectedDateChange, onRefresh, children }: PlannerLayoutProps) {
+export default function PlannerLayout({ activeTab, profile, workspace, selectedDate, onSelectedDateChange, onRefresh, darkMode, onToggleDarkMode, children }: PlannerLayoutProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [darkMode, setDarkMode] = useState(true);
-  const [themeReady, setThemeReady] = useState(false);
   const [loggingOut, startLogout] = useTransition();
 
   useEffect(() => {
-    const saved = window.localStorage.getItem("study-plan:dark-mode");
-    setDarkMode(saved !== "false");
-    setThemeReady(true);
-  }, []);
-
-  useEffect(() => {
-    const expandForMobile = () => {
-      if (window.innerWidth <= 700) setCollapsed(false);
+    const updateViewportNavigation = () => {
+      if (window.innerWidth <= 700) {
+        setCollapsed(false);
+      } else {
+        setMobileOpen(false);
+      }
     };
-    expandForMobile();
-    window.addEventListener("resize", expandForMobile);
-    return () => window.removeEventListener("resize", expandForMobile);
+    updateViewportNavigation();
+    window.addEventListener("resize", updateViewportNavigation);
+    return () => window.removeEventListener("resize", updateViewportNavigation);
   }, []);
-
-  useEffect(() => {
-    if (!themeReady) return;
-    document.body.classList.toggle("planner-light", !darkMode);
-    document.body.classList.toggle("theme-dark-green", darkMode);
-    window.localStorage.setItem("study-plan:dark-mode", String(darkMode));
-    return () => {
-      document.body.classList.remove("planner-light");
-      document.body.classList.add("theme-dark-green");
-    };
-  }, [darkMode, themeReady]);
 
   const closeMobileNav = () => setMobileOpen(false);
 
   return (
-    <div className={`planner-shell${collapsed ? " is-collapsed" : ""}${mobileOpen ? " is-mobile-open" : ""}`}>
+    <div className={`planner-shell${darkMode ? " is-theme-dark" : " is-theme-light"}${collapsed ? " is-collapsed" : ""}${mobileOpen ? " is-mobile-open" : ""}`}>
       <div className="planner-mobile-backdrop" onClick={closeMobileNav} aria-hidden="true" />
-      <aside className="planner-sidebar">
+      <aside id="planner-navigation" className="planner-sidebar">
         <div className="planner-sidebar-top">
           <SidebarProfile profile={profile} collapsed={collapsed} />
           <button type="button" className="planner-sidebar-collapse" onClick={() => setCollapsed((current) => !current)} aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}>
             {collapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
           </button>
+          <button type="button" className="planner-mobile-close" onClick={closeMobileNav} aria-label="Close navigation"><X size={20} /></button>
         </div>
         <SidebarNavigation activeTab={activeTab} collapsed={collapsed} onNavigate={closeMobileNav} />
         {!collapsed && (
@@ -304,13 +291,20 @@ export default function PlannerLayout({ activeTab, profile, workspace, selectedD
             <span><Trophy size={23} /></span>
             <strong>You&apos;re doing great!</strong>
             <p>Keep going towards your goals.</p>
-            <Link href="/manage/academic" onClick={closeMobileNav}>Achieve More <ChevronRight size={15} /></Link>
+            <Link href="/manage/progress" onClick={closeMobileNav}>Achieve More <ChevronRight size={15} /></Link>
           </section>
         )}
         <div className="planner-sidebar-bottom">
-          <button type="button" className="planner-theme-toggle" onClick={() => setDarkMode((current) => !current)} aria-pressed={darkMode} title={collapsed ? "Dark mode" : undefined}>
-            {darkMode ? <Moon size={18} /> : <Sun size={18} />}
-            {!collapsed && <span>Dark Mode</span>}
+          <button
+            type="button"
+            className="planner-theme-toggle"
+            onClick={onToggleDarkMode}
+            aria-pressed={darkMode}
+            aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+            title={collapsed ? darkMode ? "Switch to light mode" : "Switch to dark mode" : undefined}
+          >
+            {darkMode ? <Sun size={18} /> : <Moon size={18} />}
+            {!collapsed && <span>{darkMode ? "Light Mode" : "Dark Mode"}</span>}
             <i aria-hidden="true"><b /></i>
           </button>
           <button type="button" className="planner-logout" disabled={loggingOut} onClick={() => startLogout(() => { void logoutAction(); })} title={collapsed ? "Logout" : undefined}>
@@ -321,7 +315,7 @@ export default function PlannerLayout({ activeTab, profile, workspace, selectedD
 
       <main className="planner-main">
         <header className="planner-topbar">
-          <button type="button" className="planner-mobile-menu" onClick={() => setMobileOpen(true)} aria-label="Open navigation"><Menu size={22} /></button>
+          <button type="button" className="planner-mobile-menu" onClick={() => setMobileOpen(true)} aria-label="Open navigation" aria-controls="planner-navigation" aria-expanded={mobileOpen}><Menu size={22} /></button>
           <PlannerSearch workspace={workspace} onNavigate={closeMobileNav} />
           <div className="planner-topbar-actions">
             <button type="button" onClick={onRefresh} className="planner-refresh-button" aria-label="Refresh live data" title="Refresh live data"><RefreshCw size={17} /></button>
