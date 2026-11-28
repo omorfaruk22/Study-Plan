@@ -5,7 +5,8 @@ import ManageWorkspace from "@/components/manage/ManageWorkspace";
 import type { WorkspaceTab } from "@/components/manage/WorkspaceTabs";
 
 const sections: Record<string, WorkspaceTab> = {
-  "/manage": "routine",
+  "/manage": "dashboard",
+  "/manage/routine": "routine",
   "/manage/academic": "academic",
   "/manage/duet": "duet",
   "/manage/tasks": "tasks",

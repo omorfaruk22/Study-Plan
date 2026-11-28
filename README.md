@@ -35,7 +35,8 @@ A Next.js + TypeScript personal study management app backed by **MongoDB Atlas**
 |---|---|
 | / | Public home, live clocks, study totals, routine, and subjects |
 | /login | Google owner sign-in |
-| /manage | Weekly routine, class timetable, and current routine view |
+| /manage | Owner dashboard: today’s flow, quick actions, goals, reminders, and backup tools |
+| /manage/routine | Weekly routine, class timetable, and current routine view |
 | /manage/academic | Academic subjects and study logs |
 | /manage/duet | DUET Department and Non-Department subjects and study logs |
 | /manage/tasks | Assignments and exams |

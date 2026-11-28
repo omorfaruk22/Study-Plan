@@ -1,20 +1,21 @@
 import Link from "next/link";
 import { type MouseEvent, useEffect, useRef } from "react";
-import { BarChart3, BookOpen, CalendarDays, ClipboardList, RefreshCw, type LucideIcon } from "lucide-react";
+import { BarChart3, BookOpen, CalendarDays, ClipboardList, LayoutDashboard, RefreshCw, type LucideIcon } from "lucide-react";
 
-export type WorkspaceTab = "routine" | "academic" | "duet" | "tasks" | "analytics";
+export type WorkspaceTab = "dashboard" | "routine" | "academic" | "duet" | "tasks" | "analytics";
 
 type WorkspaceTabsProps = {
   activeTab: WorkspaceTab;
   onRefresh: () => void;
 };
 
-const tabs: { id: WorkspaceTab; href: string; label: string; shortLabel: string; icon: LucideIcon }[] = [
-  { id: "routine", href: "/manage", label: "সাপ্তাহিক রুটিন", shortLabel: "রুটিন", icon: CalendarDays },
-  { id: "academic", href: "/manage/academic", label: "Academic", shortLabel: "Academic", icon: BookOpen },
-  { id: "duet", href: "/manage/duet", label: "DUET", shortLabel: "DUET", icon: BookOpen },
-  { id: "tasks", href: "/manage/tasks", label: "Assignment ও পরীক্ষা", shortLabel: "কাজ", icon: ClipboardList },
-  { id: "analytics", href: "/manage/analytics", label: "পরিসংখ্যান", shortLabel: "Stats", icon: BarChart3 },
+const tabs: { id: WorkspaceTab; href: string; label: string; icon: LucideIcon }[] = [
+  { id: "dashboard", href: "/manage", label: "ড্যাশবোর্ড", icon: LayoutDashboard },
+  { id: "routine", href: "/manage/routine", label: "রুটিন", icon: CalendarDays },
+  { id: "academic", href: "/manage/academic", label: "Academic", icon: BookOpen },
+  { id: "duet", href: "/manage/duet", label: "DUET", icon: BookOpen },
+  { id: "tasks", href: "/manage/tasks", label: "কাজ", icon: ClipboardList },
+  { id: "analytics", href: "/manage/analytics", label: "পরিসংখ্যান", icon: BarChart3 },
 ];
 
 function switchSection(event: MouseEvent<HTMLAnchorElement>, href: string) {
@@ -25,7 +26,7 @@ function switchSection(event: MouseEvent<HTMLAnchorElement>, href: string) {
 
   event.preventDefault();
   if (window.location.pathname !== href) {
-    // These views share one manager layout, so avoid a server round trip per tab.
+    // The workspace is already hydrated, so move between sections without a second server round trip.
     window.history.pushState(null, "", href);
   }
 }
@@ -41,23 +42,23 @@ export default function WorkspaceTabs({ activeTab, onRefresh }: WorkspaceTabsPro
   }, [activeTab]);
 
   return (
-    <nav aria-label="Management sections" className="mobile-tab-scroll flex gap-2 overflow-x-auto px-1 pb-1 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0">
-      {tabs.map(({ id, href, label, shortLabel, icon: Icon }) => (
-        <Link
-          key={id}
-          ref={activeTab === id ? activeTabRef : undefined}
-          href={href}
-          onClick={(event) => switchSection(event, href)}
-          aria-current={activeTab === id ? "page" : undefined}
-          aria-label={label}
-          title={label}
-          className={`btn min-h-10 shrink-0 justify-center gap-1.5 px-3 py-2 text-xs leading-4 sm:min-h-11 sm:px-4 sm:py-[11px] sm:text-sm ${activeTab === id ? "btn-primary" : "btn-plain"}`}
-        >
-          <Icon size={16} /> <span className="sm:hidden">{shortLabel}</span><span className="hidden sm:inline">{label}</span>
-        </Link>
-      ))}
-      <button type="button" onClick={onRefresh} aria-label="তথ্য refresh" className="btn btn-plain min-h-10 shrink-0 px-3 py-2 text-xs sm:ml-auto sm:min-h-11 sm:text-sm">
-        <RefreshCw size={15} /> <span className="sm:hidden">Refresh</span><span className="hidden sm:inline">Refresh</span>
+    <nav aria-label="স্টাডি ম্যানেজমেন্টের বিভাগ" className="workspace-tabs mobile-tab-scroll">
+      <div className="workspace-tabs-list">
+        {tabs.map(({ id, href, label, icon: Icon }) => (
+          <Link
+            key={id}
+            ref={activeTab === id ? activeTabRef : undefined}
+            href={href}
+            onClick={(event) => switchSection(event, href)}
+            aria-current={activeTab === id ? "page" : undefined}
+            className={`workspace-tab${activeTab === id ? " is-active" : ""}`}
+          >
+            <Icon size={16} /> <span>{label}</span>
+          </Link>
+        ))}
+      </div>
+      <button type="button" onClick={onRefresh} aria-label="তথ্য নতুন করে লোড করো" className="workspace-refresh">
+        <RefreshCw size={15} /> <span>Refresh</span>
       </button>
     </nav>
   );
