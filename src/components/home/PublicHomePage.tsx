@@ -1,8 +1,8 @@
 "use client";
 
 import Header from "@/components/Header";
-import LiveClocks from "@/components/home/LiveClocks";
 import OwnerNotice from "@/components/home/OwnerNotice";
+import PublicReveal from "@/components/home/PublicReveal";
 import PublicRoutine from "@/components/home/PublicRoutine";
 import PublicStudyStats from "@/components/home/PublicStudyStats";
 import StudyFocusCards from "@/components/home/StudyFocusCards";
@@ -15,25 +15,42 @@ export default function PublicHomePage() {
   const { routine, subjects, studyStats, loading, dataUnavailable } = usePublicStudyData();
 
   return (
-    <>
-      <Header />
-      <main className="container pb-16 pt-4 sm:pt-6">
-        <div className="mb-4 grid gap-3 md:grid-cols-[auto_minmax(0,1fr)] md:items-stretch">
-          <LiveClocks />
-          <TodayClassRoutine routine={routine} loading={loading} dataUnavailable={dataUnavailable} />
-        </div>
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-stretch">
+    <div className="public-site">
+      <Header publicMode />
+      <main className="public-main">
+        <div className="public-container public-page-shell">
           <StudyHero />
-          <PublicStudyStats stats={studyStats} loading={loading} dataUnavailable={dataUnavailable} />
+          <PublicReveal delay={40}>
+            <PublicStudyStats
+              stats={studyStats}
+              subjectCount={subjects.length}
+              routineCount={routine.length}
+              loading={loading}
+              dataUnavailable={dataUnavailable}
+            />
+          </PublicReveal>
+          <PublicReveal delay={70}>
+            <StudyFocusCards routine={routine} subjects={subjects} loading={loading} dataUnavailable={dataUnavailable} />
+          </PublicReveal>
+          <PublicReveal delay={90}>
+            <TodayClassRoutine routine={routine} loading={loading} dataUnavailable={dataUnavailable} />
+          </PublicReveal>
+          <PublicReveal delay={110}>
+            <PublicRoutine routine={routine} subjects={subjects} loading={loading} dataUnavailable={dataUnavailable} />
+          </PublicReveal>
+          <div className="public-lower-grid">
+            <PublicReveal delay={120}>
+              <SubjectList subjects={subjects} loading={loading} dataUnavailable={dataUnavailable} />
+            </PublicReveal>
+            <PublicReveal delay={160}>
+              <OwnerNotice dataUnavailable={dataUnavailable} />
+            </PublicReveal>
+          </div>
         </div>
-        <StudyFocusCards />
-        <PublicRoutine routine={routine} subjects={subjects} loading={loading} dataUnavailable={dataUnavailable} />
-        <SubjectList subjects={subjects} dataUnavailable={dataUnavailable} />
-        <OwnerNotice dataUnavailable={dataUnavailable} />
-        <footer className="mt-10 border-t border-green-100 pt-5 text-center text-xs text-slate-400">
-          © {new Date().getFullYear()} Faruk Study Manager · Built for consistent learning
-        </footer>
       </main>
-    </>
+      <footer className="public-footer">
+        <div className="public-container">© {new Date().getFullYear()} StudyPlan · Plan · Study · Achieve</div>
+      </footer>
+    </div>
   );
 }
