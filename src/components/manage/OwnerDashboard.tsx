@@ -15,10 +15,10 @@ import {
   CirclePlay,
   Clock3,
   Flame,
-  ListChecks,
+  NotebookPen,
   Plus,
+  Settings,
   Sparkles,
-  Target,
   Trophy,
   type LucideIcon,
 } from "lucide-react";
@@ -74,9 +74,9 @@ function dayStreak(logs: StudyLog[], today: string) {
 }
 
 function greeting(minutes: number) {
-  if (minutes < 12 * 60) return "Good Morning!";
-  if (minutes < 17 * 60) return "Good Afternoon!";
-  return "Good Evening!";
+  if (minutes < 12 * 60) return { lead: "Good", accent: "Morning!" };
+  if (minutes < 17 * 60) return { lead: "Good", accent: "Afternoon!" };
+  return { lead: "Good", accent: "Evening!" };
 }
 
 function dateLabel(value: string, options: Intl.DateTimeFormatOptions = { day: "numeric", month: "short" }) {
@@ -218,6 +218,7 @@ export default function OwnerDashboard({ routine, logs, tasks, subjects, selecte
     return () => window.clearInterval(interval);
   }, []);
 
+  const welcomeGreeting = clock ? greeting(clock.minutes) : { lead: "Welcome", accent: "back!" };
   const completedTaskCount = tasks.filter(isTaskDone).length;
   const progress = taskProgress(tasks);
   const studyToday = logs
@@ -237,8 +238,13 @@ export default function OwnerDashboard({ routine, logs, tasks, subjects, selecte
       const label = subjectLabel(subjects, log.subject_id, log.subject_name);
       totals.set(label, (totals.get(label) || 0) + minutes);
     }
+    const totalMinutes = [...totals.values()].reduce((total, minutes) => total + minutes, 0);
     return [...totals.entries()]
-      .map(([name, minutes]) => ({ name, minutes }))
+      .map(([name, minutes]) => ({
+        name,
+        minutes,
+        share: totalMinutes > 0 ? Math.round(minutes / totalMinutes * 100) : 0,
+      }))
       .sort((first, second) => second.minutes - first.minutes || first.name.localeCompare(second.name))
       .slice(0, 4);
   }, [logs, subjects]);
@@ -254,13 +260,15 @@ export default function OwnerDashboard({ routine, logs, tasks, subjects, selecte
   return (
     <div className="planner-dashboard">
       <section className="planner-welcome" aria-labelledby="planner-welcome-title">
-        <div className="planner-welcome-art" aria-hidden="true"><span className="planner-moon" /><span className="planner-hill planner-hill-one" /><span className="planner-hill planner-hill-two" /><span className="planner-stars" /></div>
         <div className="planner-welcome-copy">
-          <p><Sparkles size={17} /> Personal daily study planner</p>
-          <h1 id="planner-welcome-title">{clock ? greeting(clock.minutes) : "Welcome back!"}</h1>
-          <span>Stay focused, study consistently, and build your next milestone.</span>
+          <p><Sparkles size={16} /> Personal daily study planner</p>
+          <div className="planner-welcome-title-row">
+            <span className="planner-welcome-wave" aria-hidden="true">👋</span>
+            <h1 id="planner-welcome-title"><span>{welcomeGreeting.lead}</span> <em>{welcomeGreeting.accent}</em></h1>
+          </div>
+          <span>Stay focused, study hard, and achieve your dreams.</span>
         </div>
-        <div className="planner-welcome-quote">Dream big.<br /><strong>Study hard.</strong></div>
+        <div className="planner-welcome-quote">Dream Big…<br /><strong>Study Hard…</strong></div>
       </section>
 
       <section className="planner-stat-grid" aria-label="Live study overview">
@@ -327,10 +335,10 @@ export default function OwnerDashboard({ routine, logs, tasks, subjects, selecte
           {subjectProgress.length > 0 ? (
             <div className="planner-subject-list">
               {subjectProgress.map((subject, index) => (
-                <article key={subject.name}>
+                <article key={subject.name} className={`planner-subject-row tone-${index % 4}`}>
                   <span className={`planner-subject-badge tone-${index % 4}`}><BookOpen size={16} /></span>
                   <div><strong>{subject.name}</strong><i><b style={{ width: `${subject.minutes / maxSubjectMinutes * 100}%` }} /></i></div>
-                  <small>{formatMinutes(subject.minutes)}</small>
+                  <small aria-label={`${formatMinutes(subject.minutes)} logged`}><b>{subject.share}%</b><span>{formatMinutes(subject.minutes)}</span></small>
                 </article>
               ))}
             </div>
@@ -355,10 +363,10 @@ export default function OwnerDashboard({ routine, logs, tasks, subjects, selecte
         <article className="planner-glass-card planner-tools-card">
           <header className="planner-card-header"><div><p><Sparkles size={18} /> Quick Tools</p><span>Use your existing planner tools</span></div></header>
           <div className="planner-tool-grid">
-            <Link href="/manage/academic" className="tool-note"><NotebookIcon /><span>Study Notes</span></Link>
+            <Link href="/manage/academic" className="tool-note"><NotebookPen size={22} /><span>Add Note</span></Link>
             <Link href="/manage/routine" className="tool-plan"><CalendarDays size={22} /><span>Update Plan</span></Link>
             <Link href="/manage/analytics" className="tool-reports"><BarChart3 size={22} /><span>View Reports</span></Link>
-            <a href="#planner-settings" className="tool-settings"><Target size={22} /><span>Settings</span></a>
+            <a href="#planner-settings" className="tool-settings"><Settings size={22} /><span>Settings</span></a>
           </div>
         </article>
       </section>
@@ -373,8 +381,4 @@ export default function OwnerDashboard({ routine, logs, tasks, subjects, selecte
       </section>
     </div>
   );
-}
-
-function NotebookIcon() {
-  return <ListChecks size={22} />;
 }

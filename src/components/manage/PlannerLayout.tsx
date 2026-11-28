@@ -24,6 +24,7 @@ import {
   Sparkles,
   Sun,
   Target,
+  Trophy,
   X,
   type LucideIcon,
 } from "lucide-react";
@@ -65,7 +66,7 @@ type SearchResult = {
 
 const navigation: NavItem[] = [
   { label: "Dashboard", href: "/manage", tab: "dashboard", icon: LayoutDashboard },
-  { label: "My Plan", href: "/manage/tasks", tab: "tasks", icon: ClipboardList },
+  { label: "My Plan", href: "/manage/tasks", tab: "tasks", icon: CalendarDays },
   { label: "Subjects", href: "/manage/academic", tab: "academic", icon: BookOpen },
   { label: "DUET Prep", href: "/manage/duet", tab: "duet", icon: GraduationCap },
   { label: "Progress", href: "/manage/analytics", tab: "analytics", icon: Target },
@@ -113,7 +114,7 @@ function SidebarProfile({ profile, collapsed }: { profile: PlannerProfile; colla
       {!collapsed && (
         <div className="planner-profile-copy">
           <strong>{displayName}</strong>
-          <span>Personal study space</span>
+          <span>Dream Big…</span>
         </div>
       )}
     </div>
@@ -301,10 +302,10 @@ export default function PlannerLayout({ activeTab, profile, workspace, selectedD
         <SidebarNavigation activeTab={activeTab} collapsed={collapsed} onNavigate={closeMobileNav} />
         {!collapsed && (
           <section className="planner-motivation-card">
-            <span><Sparkles size={19} /></span>
-            <strong>Keep going!</strong>
-            <p>আজকের ছোট focus session-ই ধারাবাহিকতা তৈরি করে।</p>
-            <Link href="/manage/academic" onClick={closeMobileNav}>পড়া শুরু করো <ChevronRight size={15} /></Link>
+            <span><Trophy size={23} /></span>
+            <strong>You&apos;re doing great!</strong>
+            <p>Keep going towards your goals.</p>
+            <Link href="/manage/academic" onClick={closeMobileNav}>Achieve More <ChevronRight size={15} /></Link>
           </section>
         )}
         <div className="planner-sidebar-bottom">
