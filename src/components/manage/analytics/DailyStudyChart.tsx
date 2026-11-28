@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { StudyLog } from "@/lib/types";
 import ChartCard from "@/components/manage/analytics/ChartCard";
 import { localDateKey } from "@/components/manage/analytics/chart-utils";
+import { dateFromDateKey, getDhakaDateKey } from "@/lib/routine-time";
 
 type Period = "7d" | "30d" | "1y" | "all" | "custom";
 type Granularity = "day" | "week" | "month";
@@ -16,21 +17,21 @@ type StudyPoint = {
 const dayInMilliseconds = 24 * 60 * 60 * 1000;
 
 function parseDateKey(value: string) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
-  const [year, month, day] = value.split("-").map(Number);
-  const date = new Date(year, month - 1, day, 12, 0, 0, 0);
-  return Number.isNaN(date.getTime()) ? null : date;
+  return dateFromDateKey(value);
 }
 
 function addDays(date: Date, days: number) {
   const result = new Date(date);
-  result.setDate(result.getDate() + days);
+  result.setUTCDate(result.getUTCDate() + days);
   return result;
 }
 
+function formatDate(date: Date, options: Intl.DateTimeFormatOptions) {
+  return date.toLocaleDateString("bn-BD", { ...options, timeZone: "UTC" });
+}
+
 function getDateRange(logs: StudyLog[], period: Period, customStart: string, customEnd: string) {
-  const today = new Date();
-  today.setHours(12, 0, 0, 0);
+  const today = parseDateKey(getDhakaDateKey());
   const end = period === "custom" ? parseDateKey(customEnd) : today;
 
   if (!end) return null;
@@ -62,21 +63,21 @@ function getGranularity(dayCount: number): Granularity {
 function getSeries(logs: StudyLog[], range: { start: Date; end: Date }, granularity: Granularity): StudyPoint[] {
   const startKey = localDateKey(range.start);
   const endKey = localDateKey(range.end);
-  const dayCount = Math.max(1, Math.floor((Date.UTC(range.end.getFullYear(), range.end.getMonth(), range.end.getDate()) - Date.UTC(range.start.getFullYear(), range.start.getMonth(), range.start.getDate())) / dayInMilliseconds) + 1);
+  const dayCount = Math.max(1, Math.floor((Date.UTC(range.end.getUTCFullYear(), range.end.getUTCMonth(), range.end.getUTCDate()) - Date.UTC(range.start.getUTCFullYear(), range.start.getUTCMonth(), range.start.getUTCDate())) / dayInMilliseconds) + 1);
   const buckets: { key: string; label: string; startDate: Date; endDate: Date }[] = [];
 
   if (granularity === "month") {
-    const cursor = new Date(range.start.getFullYear(), range.start.getMonth(), 1, 12);
+    const cursor = new Date(Date.UTC(range.start.getUTCFullYear(), range.start.getUTCMonth(), 1, 12));
     while (cursor <= range.end) {
       const monthStart = new Date(cursor);
-      const monthEnd = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 0, 12);
+      const monthEnd = new Date(Date.UTC(cursor.getUTCFullYear(), cursor.getUTCMonth() + 1, 0, 12));
       buckets.push({
-        key: `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, "0")}`,
-        label: cursor.toLocaleDateString("bn-BD", { month: "short", year: "2-digit" }),
+        key: `${cursor.getUTCFullYear()}-${String(cursor.getUTCMonth() + 1).padStart(2, "0")}`,
+        label: formatDate(cursor, { month: "short", year: "2-digit" }),
         startDate: monthStart < range.start ? range.start : monthStart,
         endDate: monthEnd > range.end ? range.end : monthEnd,
       });
-      cursor.setMonth(cursor.getMonth() + 1);
+      cursor.setUTCMonth(cursor.getUTCMonth() + 1);
     }
   } else {
     const bucketSize = granularity === "day" ? 1 : 7;
@@ -85,9 +86,7 @@ function getSeries(logs: StudyLog[], range: { start: Date; end: Date }, granular
       const bucketStart = addDays(range.start, index * bucketSize);
       const bucketEnd = addDays(bucketStart, bucketSize - 1) > range.end ? range.end : addDays(bucketStart, bucketSize - 1);
       const key = granularity === "day" ? localDateKey(bucketStart) : `week-${localDateKey(bucketStart)}`;
-      const label = granularity === "day"
-        ? bucketStart.toLocaleDateString("bn-BD", { day: "numeric", month: "short" })
-        : bucketStart.toLocaleDateString("bn-BD", { day: "numeric", month: "short" });
+      const label = formatDate(bucketStart, { day: "numeric", month: "short" });
       buckets.push({ key, label, startDate: bucketStart, endDate: bucketEnd });
     }
   }
@@ -104,7 +103,7 @@ function getSeries(logs: StudyLog[], range: { start: Date; end: Date }, granular
     } else if (granularity === "day") {
       bucketKey = log.study_date;
     } else {
-      const offset = Math.floor((Date.UTC(logDate.getFullYear(), logDate.getMonth(), logDate.getDate()) - Date.UTC(range.start.getFullYear(), range.start.getMonth(), range.start.getDate())) / dayInMilliseconds);
+      const offset = Math.floor((Date.UTC(logDate.getUTCFullYear(), logDate.getUTCMonth(), logDate.getUTCDate()) - Date.UTC(range.start.getUTCFullYear(), range.start.getUTCMonth(), range.start.getUTCDate())) / dayInMilliseconds);
       bucketKey = `week-${localDateKey(addDays(range.start, Math.floor(offset / 7) * 7))}`;
     }
 
@@ -115,7 +114,7 @@ function getSeries(logs: StudyLog[], range: { start: Date; end: Date }, granular
 }
 
 export default function DailyStudyChart({ logs }: { logs: StudyLog[] }) {
-  const today = new Date();
+  const today = parseDateKey(getDhakaDateKey()) || new Date();
   const initialEnd = localDateKey(today);
   const initialStart = localDateKey(addDays(today, -6));
   const [period, setPeriod] = useState<Period>("7d");
@@ -123,7 +122,7 @@ export default function DailyStudyChart({ logs }: { logs: StudyLog[] }) {
   const [customEnd, setCustomEnd] = useState(initialEnd);
   const range = getDateRange(logs, period, customStart, customEnd);
   const dayCount = range
-    ? Math.floor((Date.UTC(range.end.getFullYear(), range.end.getMonth(), range.end.getDate()) - Date.UTC(range.start.getFullYear(), range.start.getMonth(), range.start.getDate())) / dayInMilliseconds) + 1
+    ? Math.floor((Date.UTC(range.end.getUTCFullYear(), range.end.getUTCMonth(), range.end.getUTCDate()) - Date.UTC(range.start.getUTCFullYear(), range.start.getUTCMonth(), range.start.getUTCDate())) / dayInMilliseconds) + 1
     : 0;
   const granularity = getGranularity(dayCount);
   const points = range ? getSeries(logs, range, granularity) : [];

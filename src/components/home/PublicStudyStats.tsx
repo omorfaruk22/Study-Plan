@@ -4,13 +4,14 @@ import type { PublicStudyStats as StudyStats } from "@/lib/types";
 type PublicStudyStatsProps = {
   stats: StudyStats;
   loading: boolean;
+  dataUnavailable: boolean;
 };
 
 function formatDuration(totalMinutes: number) {
   return `${(Math.max(0, totalMinutes) / 60).toFixed(1)} ঘণ্টা`;
 }
 
-export default function PublicStudyStats({ stats, loading }: PublicStudyStatsProps) {
+export default function PublicStudyStats({ stats, loading, dataUnavailable }: PublicStudyStatsProps) {
   const items = [
     { label: "একাডেমিক", minutes: stats.academic_minutes, icon: BookOpen, color: "bg-green-100 text-green-800" },
     { label: "DUET Department", minutes: stats.duet_department_minutes, icon: GraduationCap, color: "bg-lime-100 text-lime-800" },
@@ -30,7 +31,7 @@ export default function PublicStudyStats({ stats, loading }: PublicStudyStatsPro
             <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg sm:h-9 sm:w-9 ${color}`}><Icon size={16} /></span>
             <div className="min-w-0">
               <p className="break-words text-[11px] font-semibold text-slate-500">{label}</p>
-              <p className="text-xs font-extrabold text-green-950 sm:text-sm">{loading ? "লোড হচ্ছে…" : formatDuration(minutes)}</p>
+              <p className="text-xs font-extrabold text-green-950 sm:text-sm">{loading ? "লোড হচ্ছে…" : dataUnavailable ? "তথ্য পাওয়া যাচ্ছে না" : formatDuration(minutes)}</p>
             </div>
           </article>
         ))}

@@ -3,18 +3,13 @@
 import { BookOpenCheck, CalendarClock, Check, ChevronDown } from "lucide-react";
 import type { StudyLog } from "@/lib/types";
 import { localDateKey } from "@/components/manage/analytics/chart-utils";
+import { addDaysToDateKey } from "@/lib/routine-time";
 import useResponsiveDisclosure from "@/components/manage/useResponsiveDisclosure";
 
 function dayDifference(from: string, to: string) {
-  const first = new Date(`${from}T12:00:00`).getTime();
-  const second = new Date(`${to}T12:00:00`).getTime();
+  const first = new Date(`${from}T12:00:00Z`).getTime();
+  const second = new Date(`${to}T12:00:00Z`).getTime();
   return Math.round((second - first) / 86_400_000);
-}
-
-function addDays(value: string, days: number) {
-  const [year, month, day] = value.split("-").map(Number);
-  const date = new Date(year, month - 1, day + days, 12);
-  return localDateKey(date);
 }
 
 function trackName(track?: string | null) {
@@ -70,7 +65,7 @@ export default function ReviewReminderPanel({ logs, busy, onReviewed }: ReviewRe
                   <p className="mt-1 truncate text-[11px] text-slate-500">{trackName(log.study_track)} · {log.review_due_date} · {timeLabel}</p>
                 </div>
                 {isDue ? (
-                  <button type="button" disabled={busy} onClick={() => void onReviewed(log, today, addDays(today, 3))} className="btn btn-soft shrink-0 px-2.5 py-2 text-[11px] disabled:opacity-50">
+                  <button type="button" disabled={busy} onClick={() => void onReviewed(log, today, addDaysToDateKey(today, 3))} className="btn btn-soft shrink-0 px-2.5 py-2 text-[11px] disabled:opacity-50">
                     <Check size={14} /> আবার পড়েছি
                   </button>
                 ) : <BookOpenCheck size={17} className="shrink-0 text-green-600" aria-hidden="true" />}

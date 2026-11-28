@@ -26,7 +26,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const email = typeof credentials?.email === "string" ? credentials.email.trim().toLowerCase() : "";
         const password = typeof credentials?.password === "string" ? credentials.password : "";
         if (!ownerEmail || !ownerPassword || email !== ownerEmail || !password || !matchesOwnerPassword(password, ownerPassword)) return null;
-        return { id: ownerEmail, email: ownerEmail, name: "Admin" };
+        return { id: ownerEmail, email: ownerEmail, name: "Omor Faruk" };
       },
     }),
   ],

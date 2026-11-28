@@ -13,7 +13,7 @@ type AnalyticsDashboardProps = {
 
 export default function AnalyticsDashboard({ logs, tasks, subjects }: AnalyticsDashboardProps) {
   return (
-    <section className="mt-5">
+    <section className="planner-manager planner-manager-analytics mt-5">
       <header className="mb-4">
         <p className="text-xs font-bold uppercase tracking-[.16em] text-green-700">Study insights</p>
         <h2 className="mt-1 text-xl font-black text-green-950 sm:text-2xl">তোমার পড়াশোনার চিত্র</h2>

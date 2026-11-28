@@ -67,7 +67,7 @@ export default function TasksManager({ tasks, subjects, busy, onSave, onDelete }
   }
 
   return (
-    <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(300px,.8fr)_minmax(0,1.2fr)]">
+    <div className="planner-manager planner-manager-tasks mt-5 grid gap-5 lg:grid-cols-[minmax(300px,.8fr)_minmax(0,1.2fr)]">
       <section className="card p-3.5 sm:p-5">
         <h2 className="mb-4 font-extrabold text-green-950">{editingId ? "কাজ সম্পাদনা" : "নতুন Assignment / পরীক্ষা"}</h2>
         <form onSubmit={handleSubmit} className="grid gap-3">

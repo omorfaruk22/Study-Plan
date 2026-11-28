@@ -91,23 +91,22 @@ function displayDate(value: string) {
   return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }).format(date);
 }
 
-function profileInitials(profile: PlannerProfile) {
-  const source = profile.name?.trim() || profile.email.trim();
+function profileInitials(source: string) {
   const initials = source
     .split(/[\s@._-]+/)
     .filter(Boolean)
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase())
     .join("");
-  return initials || "S";
+  return initials || "OF";
 }
 
 function SidebarProfile({ profile, collapsed }: { profile: PlannerProfile; collapsed: boolean }) {
-  const displayName = profile.name?.trim() || profile.email;
+  const displayName = "Omor Faruk";
   return (
     <div className="planner-profile">
       <span className="planner-avatar" aria-label={displayName}>
-        <span className="planner-avatar-fallback">{profileInitials(profile)}</span>
+        <span className="planner-avatar-fallback">{profileInitials(displayName)}</span>
         {profile.image && <img src={profile.image} alt="" referrerPolicy="no-referrer" onError={(event) => { event.currentTarget.remove(); }} />}
         <i aria-hidden="true" />
       </span>

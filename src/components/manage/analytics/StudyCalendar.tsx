@@ -4,15 +4,20 @@ import { useMemo, useState } from "react";
 import { ArrowLeft, ArrowRight, CalendarDays } from "lucide-react";
 import type { StudyLog } from "@/lib/types";
 import { localDateKey } from "@/components/manage/analytics/chart-utils";
+import { dateFromDateKey, getDhakaDateKey } from "@/lib/routine-time";
 
 const weekdays = ["রবি", "সোম", "মঙ্গল", "বুধ", "বৃহঃ", "শুক্র", "শনি"];
 
+function startOfMonth(date: Date) {
+  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1, 12));
+}
+
 function shiftMonth(date: Date, amount: number) {
-  return new Date(date.getFullYear(), date.getMonth() + amount, 1, 12);
+  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + amount, 1, 12));
 }
 
 function formatMonth(date: Date) {
-  return date.toLocaleDateString("bn-BD", { month: "long", year: "numeric" });
+  return date.toLocaleDateString("bn-BD", { month: "long", year: "numeric", timeZone: "UTC" });
 }
 
 function durationLabel(minutes: number) {
@@ -23,10 +28,10 @@ function durationLabel(minutes: number) {
 
 export default function StudyCalendar({ logs }: { logs: StudyLog[] }) {
   const [month, setMonth] = useState(() => {
-    const today = new Date();
-    return new Date(today.getFullYear(), today.getMonth(), 1, 12);
+    const today = dateFromDateKey(getDhakaDateKey()) || new Date();
+    return startOfMonth(today);
   });
-  const [selected, setSelected] = useState(() => localDateKey(new Date()));
+  const [selected, setSelected] = useState(() => getDhakaDateKey());
   const dataByDay = useMemo(() => {
     const result = new Map<string, { minutes: number; count: number; logs: StudyLog[] }>();
     for (const log of logs) {
@@ -39,17 +44,18 @@ export default function StudyCalendar({ logs }: { logs: StudyLog[] }) {
     return result;
   }, [logs]);
 
-  const firstDay = new Date(month.getFullYear(), month.getMonth(), 1, 12);
-  const gridStart = new Date(month.getFullYear(), month.getMonth(), 1 - firstDay.getDay(), 12);
+  const firstDay = startOfMonth(month);
+  const gridStart = new Date(firstDay);
+  gridStart.setUTCDate(1 - firstDay.getUTCDay());
   const days = Array.from({ length: 42 }, (_, index) => {
     const day = new Date(gridStart);
-    day.setDate(gridStart.getDate() + index);
+    day.setUTCDate(gridStart.getUTCDate() + index);
     const key = localDateKey(day);
-    return { date: day, key, inside: day.getMonth() === month.getMonth(), data: dataByDay.get(key) };
+    return { date: day, key, inside: day.getUTCMonth() === month.getUTCMonth(), data: dataByDay.get(key) };
   });
   const selectedData = dataByDay.get(selected);
-  const selectedDate = new Date(`${selected}T12:00:00`);
-  const monthEntries = [...dataByDay.entries()].filter(([key]) => key.startsWith(`${month.getFullYear()}-${String(month.getMonth() + 1).padStart(2, "0")}`));
+  const selectedDate = dateFromDateKey(selected) || dateFromDateKey(getDhakaDateKey()) || new Date();
+  const monthEntries = [...dataByDay.entries()].filter(([key]) => key.startsWith(`${month.getUTCFullYear()}-${String(month.getUTCMonth() + 1).padStart(2, "0")}`));
   const maxMinutes = Math.max(1, ...monthEntries.map(([, value]) => value.minutes));
 
   function navigate(amount: number) {
@@ -77,7 +83,7 @@ export default function StudyCalendar({ logs }: { logs: StudyLog[] }) {
         {days.map(({ date, key, inside, data }) => {
           const strength = data ? data.minutes / maxMinutes : 0;
           const tone = !data ? "bg-green-50/50 text-slate-400" : strength > .66 ? "bg-green-700 text-white" : strength > .33 ? "bg-green-300 text-green-950" : "bg-emerald-100 text-green-900";
-          const current = key === localDateKey(new Date());
+          const current = key === getDhakaDateKey();
           const isSelected = key === selected;
           return (
             <button
@@ -86,10 +92,10 @@ export default function StudyCalendar({ logs }: { logs: StudyLog[] }) {
               role="gridcell"
               aria-pressed={isSelected}
               aria-label={`${key}: ${data ? durationLabel(data.minutes) : "পড়ার log নেই"}`}
-              onClick={() => { setSelected(key); if (!inside) setMonth(new Date(date.getFullYear(), date.getMonth(), 1, 12)); }}
+              onClick={() => { setSelected(key); if (!inside) setMonth(startOfMonth(date)); }}
             className={`flex min-h-[44px] flex-col items-center justify-center rounded-lg border p-0.5 transition sm:min-h-[70px] sm:rounded-xl sm:p-1 ${tone} ${inside ? "" : "opacity-45"} ${current ? "ring-2 ring-green-500 ring-offset-1" : "border-transparent"} ${isSelected ? "!border-green-900 !ring-2 !ring-lime-400" : ""}`}
             >
-              <span className="text-xs font-extrabold sm:text-sm">{date.getDate().toLocaleString("bn-BD")}</span>
+              <span className="text-xs font-extrabold sm:text-sm">{date.getUTCDate().toLocaleString("bn-BD")}</span>
               {data && <span className="mt-0.5 text-[9px] font-bold leading-3 sm:text-[10px]">{data.count} log</span>}
               {data && <span className="text-[9px] leading-3 sm:text-[10px]">{data.minutes}m</span>}
             </button>
@@ -99,7 +105,7 @@ export default function StudyCalendar({ logs }: { logs: StudyLog[] }) {
 
       <div className="mt-4 rounded-2xl border border-green-100 bg-green-50/50 p-3.5">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <p className="text-sm font-extrabold text-green-950">{selectedDate.toLocaleDateString("bn-BD", { day: "numeric", month: "long", year: "numeric" })}</p>
+          <p className="text-sm font-extrabold text-green-950">{selectedDate.toLocaleDateString("bn-BD", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" })}</p>
           <p className="text-xs font-bold text-green-700">{selectedData ? `${durationLabel(selectedData.minutes)} · ${selectedData.count}টি session` : "কোনো পড়ার log নেই"}</p>
         </div>
         {selectedData && <div className="mt-2 space-y-1.5">{selectedData.logs.map((log) => <p key={log.id} className="truncate text-xs text-slate-600">{log.topic} · {log.actual_minutes} মিনিট</p>)}</div>}

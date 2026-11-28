@@ -26,7 +26,7 @@ import DataBackupTools from "@/components/manage/DataBackupTools";
 import DailyGoalsPanel from "@/components/manage/DailyGoalsPanel";
 import ReviewReminderPanel from "@/components/manage/ReviewReminderPanel";
 import { formatMinutes, subjectLabel } from "@/components/manage/analytics/chart-utils";
-import { formatTimeRange, getDhakaDateKey, getDhakaRoutineClock, routineMatchesDay, routineTimeToMinutes, type DhakaRoutineClock } from "@/lib/routine-time";
+import { addDaysToDateKey, formatTimeRange, getDhakaDateKey, getDhakaRoutineClock, getDhakaWeekdayForDateKey, routineMatchesDay, routineTimeToMinutes, type DhakaRoutineClock } from "@/lib/routine-time";
 import type { OwnerWorkspaceData, RoutineItem, StudyLog, StudyTask } from "@/lib/types";
 
 type OwnerDashboardProps = OwnerWorkspaceData & {
@@ -46,15 +46,12 @@ type StatCard = {
 };
 
 type UpcomingItem = RoutineItem & { dateKey: string; dayOffset: number };
+type PlanEntry =
+  | { kind: "task"; item: StudyTask }
+  | { kind: "routine"; item: RoutineItem };
 
 function isTaskDone(task: StudyTask) {
   return task.status === "সম্পন্ন" || task.status === "জমা হয়েছে";
-}
-
-function addDaysToDateKey(value: string, days: number) {
-  const date = new Date(`${value}T12:00:00Z`);
-  date.setUTCDate(date.getUTCDate() + days);
-  return date.toISOString().slice(0, 10);
 }
 
 function dateFromKey(value: string) {
@@ -101,12 +98,30 @@ function buildStudySeries(logs: StudyLog[], today: string, days: number) {
   });
 }
 
+function sortRoutineItems(first: RoutineItem, second: RoutineItem) {
+  const firstStart = routineTimeToMinutes(first.start_time);
+  const secondStart = routineTimeToMinutes(second.start_time);
+  if (firstStart !== null && secondStart !== null) return firstStart - secondStart;
+  if (firstStart !== null) return -1;
+  if (secondStart !== null) return 1;
+  return (Number(first.sort_order) || 0) - (Number(second.sort_order) || 0);
+}
+
+function getRoutineForDate(routine: RoutineItem[], dateKey: string) {
+  const day = getDhakaWeekdayForDateKey(dateKey);
+  if (!day) return [];
+  return routine
+    .filter((item) => routineMatchesDay(item.day, day))
+    .sort(sortRoutineItems);
+}
+
 function getUpcomingRoutine(routine: RoutineItem[], clock: DhakaRoutineClock | null, today: string) {
   if (!clock || !today) return [] as UpcomingItem[];
   const occurrences: UpcomingItem[] = [];
   for (let offset = 0; offset < 7; offset += 1) {
     const dateKey = addDaysToDateKey(today, offset);
-    const day = getDhakaRoutineClock(new Date(`${dateKey}T06:00:00Z`)).day;
+    const day = getDhakaWeekdayForDateKey(dateKey);
+    if (!day) continue;
     for (const item of routine) {
       const start = routineTimeToMinutes(item.start_time);
       if (!routineMatchesDay(item.day, day)) continue;
@@ -117,12 +132,7 @@ function getUpcomingRoutine(routine: RoutineItem[], clock: DhakaRoutineClock | n
   return occurrences
     .sort((first, second) => {
       if (first.dayOffset !== second.dayOffset) return first.dayOffset - second.dayOffset;
-      const firstStart = routineTimeToMinutes(first.start_time);
-      const secondStart = routineTimeToMinutes(second.start_time);
-      if (firstStart !== null && secondStart !== null) return firstStart - secondStart;
-      if (firstStart !== null) return -1;
-      if (secondStart !== null) return 1;
-      return first.sort_order - second.sort_order;
+      return sortRoutineItems(first, second);
     })
     .slice(0, 4);
 }
@@ -226,8 +236,12 @@ export default function OwnerDashboard({ routine, logs, tasks, subjects, selecte
     .reduce((total, log) => total + Math.max(0, Number(log.actual_minutes) || 0), 0);
   const streak = dayStreak(logs, today);
   const studySeries = useMemo(() => buildStudySeries(logs, today, chartDays), [chartDays, logs, today]);
-  const planTasks = tasks.filter((task) => task.due_date === selectedDate);
-  const visiblePlanTasks = planTasks.slice(0, 4);
+  const planTasks = useMemo(() => tasks.filter((task) => task.due_date === selectedDate), [selectedDate, tasks]);
+  const selectedRoutine = useMemo(() => getRoutineForDate(routine, selectedDate), [routine, selectedDate]);
+  const planEntries = useMemo<PlanEntry[]>(() => [
+    ...planTasks.map((item) => ({ kind: "task" as const, item })),
+    ...selectedRoutine.map((item) => ({ kind: "routine" as const, item })),
+  ].slice(0, 4), [planTasks, selectedRoutine]);
   const upcoming = useMemo(() => getUpcomingRoutine(routine, clock, today), [clock, routine, today]);
 
   const subjectProgress = useMemo(() => {
@@ -252,7 +266,7 @@ export default function OwnerDashboard({ routine, logs, tasks, subjects, selecte
 
   const stats: StatCard[] = [
     { label: "Total Subjects", value: String(subjects.length), detail: subjects.length ? "Live subject list" : "No subjects yet", icon: BookOpen, tone: "subjects" },
-    { label: "Study Time Today", value: formatMinutes(studyToday), detail: today ? dateLabel(today, { weekday: "short", day: "numeric", month: "short" }) : "Loading date…", icon: Clock3, tone: "time" },
+    { label: "Study Time Today", value: formatMinutes(studyToday), detail: studyToday > 0 ? (today ? dateLabel(today, { weekday: "short", day: "numeric", month: "short" }) : "Loading date…") : "No saved session today", icon: Clock3, tone: "time" },
     { label: "Overall Progress", value: progress === null ? "—" : `${progress}%`, detail: tasks.length ? `${completedTaskCount}/${tasks.length} task completed` : "No task data", icon: CheckCircle2, tone: "progress" },
     { label: "Day Streak", value: `${streak}`, detail: streak === 1 ? "day with study logs" : "days with study logs", icon: Flame, tone: "streak" },
   ];
@@ -305,14 +319,26 @@ export default function OwnerDashboard({ routine, logs, tasks, subjects, selecte
         <article className="planner-glass-card planner-plan-card">
           <header className="planner-card-header">
             <div><p><CalendarDays size={18} /> {selectedDate && selectedDate === today ? "Today’s Study Plan" : "Study Plan"}</p><span>{selectedDate ? dateLabel(selectedDate, { weekday: "long", day: "numeric", month: "short" }) : "Loading date…"}</span></div>
-            <Link href="/manage/tasks">View all <ArrowRight size={15} /></Link>
+            <Link href={planTasks.length > 0 ? "/manage/tasks" : "/manage/routine"}>View all <ArrowRight size={15} /></Link>
           </header>
-          {planTasks.length > 0 ? (
+          {planEntries.length > 0 ? (
             <div className="planner-task-list">
-              {visiblePlanTasks.map((task) => {
+              {planEntries.map((entry) => {
+                if (entry.kind === "routine") {
+                  const item = entry.item;
+                  return (
+                    <article key={`routine-${item.id}`} className="planner-live-task planner-live-routine">
+                      <span className="planner-routine-icon"><Clock3 size={15} /></span>
+                      <div><strong>{item.title}</strong><small>{formatTimeRange(item.start_time, item.end_time)}{item.category ? ` · ${item.category}` : ""}</small></div>
+                      <Link href="/manage/routine" aria-label={`Open ${item.title}`}><ChevronRight size={16} /></Link>
+                    </article>
+                  );
+                }
+
+                const task = entry.item;
                 const complete = isTaskDone(task);
                 return (
-                  <article key={task.id} className={`planner-live-task${complete ? " is-complete" : ""}`}>
+                  <article key={`task-${task.id}`} className={`planner-live-task${complete ? " is-complete" : ""}`}>
                     <button type="button" disabled={busy || complete} onClick={() => void onCompleteTask(task)} aria-label={complete ? `${task.title} completed` : `${task.title} mark complete`}>
                       {complete ? <Check size={16} /> : <span />}
                     </button>
@@ -323,7 +349,7 @@ export default function OwnerDashboard({ routine, logs, tasks, subjects, selecte
               })}
             </div>
           ) : (
-            <div className="planner-empty-state compact"><CalendarDays size={22} /><strong>No study plans for this date</strong><span>Live tasks with a matching deadline will appear here.</span><Link href="/manage/tasks"><Plus size={14} /> Add task</Link></div>
+            <div className="planner-empty-state compact"><CalendarDays size={22} /><strong>No study plans for this date</strong><span>Live tasks or routine items for the selected date will appear here.</span><Link href="/manage/routine"><Plus size={14} /> Add routine</Link></div>
           )}
           <Link href="/manage/academic" className="planner-continue-study"><CirclePlay size={18} /> Continue Study <ArrowRight size={16} /></Link>
         </article>

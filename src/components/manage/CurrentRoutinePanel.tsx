@@ -17,6 +17,15 @@ type CurrentRoutinePanelProps = {
   subjects: Subject[];
 };
 
+function sortRoutineItems(first: RoutineItem, second: RoutineItem) {
+  const firstStart = routineTimeToMinutes(first.start_time);
+  const secondStart = routineTimeToMinutes(second.start_time);
+  if (firstStart !== null && secondStart !== null) return firstStart - secondStart;
+  if (firstStart !== null) return -1;
+  if (secondStart !== null) return 1;
+  return (Number(first.sort_order) || 0) - (Number(second.sort_order) || 0);
+}
+
 function getSpecialTimeBlock(items: RoutineItem[], now: number): RoutineItem[] {
   for (let index = 0; index < items.length; index += 1) {
     const start = routineTimeToMinutes(items[index].start_time);
@@ -75,7 +84,7 @@ export default function CurrentRoutinePanel({ routine, subjects }: CurrentRoutin
     if (!clock) return [];
     return routine
       .filter((item) => routineMatchesDay(item.day, clock.day))
-      .sort((a, b) => a.sort_order - b.sort_order);
+      .sort(sortRoutineItems);
   }, [clock, routine]);
 
   const activeItem = todayItems.find((item) => {
@@ -91,7 +100,7 @@ export default function CurrentRoutinePanel({ routine, subjects }: CurrentRoutin
         const start = routineTimeToMinutes(item.start_time);
         return start !== null && start > clock.minutes;
       })
-      .sort((a, b) => (routineTimeToMinutes(a.start_time) || 0) - (routineTimeToMinutes(b.start_time) || 0))[0]
+      .sort(sortRoutineItems)[0]
     : undefined;
 
   const specialBlock = clock && !activeItem
@@ -111,12 +120,12 @@ export default function CurrentRoutinePanel({ routine, subjects }: CurrentRoutin
         const start = routineTimeToMinutes(item.start_time);
         return start !== null && (start >= clock.minutes || item.id === activeItem?.id);
       })
-      .sort((a, b) => (routineTimeToMinutes(a.start_time) || 0) - (routineTimeToMinutes(b.start_time) || 0))
+      .sort(sortRoutineItems)
       .slice(0, 3);
   }, [activeItem?.id, clock, todayItems]);
 
   return (
-    <aside className="card relative h-full overflow-hidden p-4 sm:p-5">
+    <aside className="planner-routine-live card relative h-full overflow-hidden p-4 sm:p-5">
       <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-green-500 via-lime-400 to-emerald-500" />
       <div className="flex items-start justify-between gap-3">
         <div>

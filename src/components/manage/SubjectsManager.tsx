@@ -37,7 +37,7 @@ export default function SubjectsManager({ subjects, category, busy, onSave, onDe
   }
 
   return (
-    <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(280px,.7fr)_minmax(0,1.3fr)]">
+    <div className="planner-manager-grid mt-5 grid gap-5 lg:grid-cols-[minmax(280px,.7fr)_minmax(0,1.3fr)]">
       <section className="card p-3.5 sm:p-5">
         <div className="mb-4 flex items-center justify-between gap-3">
           <h2 className="font-extrabold text-green-950">{editingId ? "বিষয় সম্পাদনা" : "নিজের বিষয় যোগ করো"}</h2>

@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { getDb } from "@/lib/mongodb";
-import { defaultRoutine } from "@/lib/defaults";
 import type { PublicStudyStats, StudyTrack } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -28,10 +27,6 @@ function publicRoutine(doc: Record<string, unknown>) {
 function publicSubject(doc: Record<string, unknown>) {
   const { _id, name, category, code, color } = doc;
   return { id: String(_id), name, category, code, color };
-}
-
-function fallbackRoutine() {
-  return defaultRoutine.map(({ notes: _notes, ...item }, index) => ({ ...item, id: `sample-routine-${index}` }));
 }
 
 function getStudyTrack(log: Record<string, unknown>, subjectCategories: Map<string, string>): StudyTrack | null {
@@ -71,17 +66,17 @@ export async function GET() {
     ]);
 
     return NextResponse.json({
-      routine: routine.length ? routine.map(publicRoutine) : fallbackRoutine(),
+      routine: routine.map(publicRoutine),
       subjects: subjects.map(publicSubject),
       studyStats: summarizeStudy(logs, subjects),
     });
   } catch (error) {
     console.error("Public data unavailable:", error);
     return NextResponse.json({
-      routine: fallbackRoutine(),
+      routine: [],
       subjects: [],
       studyStats: emptyStudyStats,
-      demoMode: true,
+      dataUnavailable: true,
     });
   }
 }

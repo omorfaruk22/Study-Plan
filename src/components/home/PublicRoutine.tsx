@@ -10,6 +10,7 @@ type PublicRoutineProps = {
   routine: RoutineItem[];
   subjects: Subject[];
   loading: boolean;
+  dataUnavailable: boolean;
 };
 
 type RoutineFilter = "today" | "all" | (typeof WEEKDAYS)[number];
@@ -22,7 +23,7 @@ function getRoutineDayOrder(day: string) {
   return index < 0 ? WEEKDAYS.length : index;
 }
 
-export default function PublicRoutine({ routine, subjects, loading }: PublicRoutineProps) {
+export default function PublicRoutine({ routine, subjects, loading, dataUnavailable }: PublicRoutineProps) {
   const [clock, setClock] = useState(() => getDhakaRoutineClock());
   const [selectedDay, setSelectedDay] = useState<RoutineFilter>("today");
 
@@ -105,8 +106,8 @@ export default function PublicRoutine({ routine, subjects, loading }: PublicRout
           </div>
         ) : visibleRoutine.length === 0 ? (
           <div className="mt-3 rounded-2xl border border-dashed border-green-500/25 px-4 py-10 text-center">
-            <p className="font-bold text-slate-600">এই দিনের জন্য কোনো রুটিন প্রকাশিত হয়নি।</p>
-            <p className="mt-1 text-xs text-slate-500">অন্য দিন দেখতে উপরের বাটন ব্যবহার করো।</p>
+            <p className="font-bold text-slate-600">{dataUnavailable ? "লাইভ রুটিন এখন পাওয়া যাচ্ছে না।" : "এই দিনের জন্য কোনো রুটিন প্রকাশিত হয়নি।"}</p>
+            <p className="mt-1 text-xs text-slate-500">{dataUnavailable ? "সংযোগ ফিরলে এখানে শুধু প্রকাশিত রুটিন দেখা যাবে।" : "অন্য দিন দেখতে উপরের বাটন ব্যবহার করো।"}</p>
           </div>
         ) : (
           <div className="mt-3 grid gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
@@ -147,7 +148,7 @@ export default function PublicRoutine({ routine, subjects, loading }: PublicRout
 
         <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-3 text-[11px] text-slate-500">
           <span>{selectedDay === "today" ? `${clock.day} · আজকের রুটিন` : selectedDay === "all" ? "সকল প্রকাশিত দিন" : selectedDay}</span>
-          <span className="font-semibold">{loading ? "লোড হচ্ছে" : `${visibleRoutine.length} টি রুটিন`}</span>
+          <span className="font-semibold">{loading ? "লোড হচ্ছে" : dataUnavailable ? "তথ্য পাওয়া যাচ্ছে না" : `${visibleRoutine.length} টি রুটিন`}</span>
         </div>
       </div>
     </section>

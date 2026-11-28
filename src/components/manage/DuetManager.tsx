@@ -28,8 +28,8 @@ export default function DuetManager({ logs, subjects, busy, onSave, onSaveSubjec
   const sectionLogs = logs.filter((log) => log.study_track === selected.track);
 
   return (
-    <section className="mt-5">
-      <header className="mb-4 rounded-2xl border border-green-100 bg-green-50/70 p-3.5 sm:p-5">
+    <section className="planner-manager planner-manager-duet mt-5">
+      <header className="planner-manager-hero mb-4 rounded-2xl border border-green-100 bg-green-50/70 p-3.5 sm:p-5">
         <div className="flex items-center gap-3">
           <span className="grid h-11 w-11 place-items-center rounded-xl bg-white text-green-700"><BookOpenCheck size={21} /></span>
           <div>

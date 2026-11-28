@@ -12,7 +12,7 @@ import TodayClassRoutine from "@/components/home/TodayClassRoutine";
 import { usePublicStudyData } from "@/hooks/usePublicStudyData";
 
 export default function PublicHomePage() {
-  const { routine, subjects, studyStats, loading, demoMode } = usePublicStudyData();
+  const { routine, subjects, studyStats, loading, dataUnavailable } = usePublicStudyData();
 
   return (
     <>
@@ -20,16 +20,16 @@ export default function PublicHomePage() {
       <main className="container pb-16 pt-4 sm:pt-6">
         <div className="mb-4 grid gap-3 md:grid-cols-[auto_minmax(0,1fr)] md:items-stretch">
           <LiveClocks />
-          <TodayClassRoutine routine={routine} loading={loading} />
+          <TodayClassRoutine routine={routine} loading={loading} dataUnavailable={dataUnavailable} />
         </div>
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-stretch">
           <StudyHero />
-          <PublicStudyStats stats={studyStats} loading={loading} />
+          <PublicStudyStats stats={studyStats} loading={loading} dataUnavailable={dataUnavailable} />
         </div>
         <StudyFocusCards />
-        <PublicRoutine routine={routine} subjects={subjects} loading={loading} />
-        <SubjectList subjects={subjects} />
-        <OwnerNotice demoMode={demoMode} />
+        <PublicRoutine routine={routine} subjects={subjects} loading={loading} dataUnavailable={dataUnavailable} />
+        <SubjectList subjects={subjects} dataUnavailable={dataUnavailable} />
+        <OwnerNotice dataUnavailable={dataUnavailable} />
         <footer className="mt-10 border-t border-green-100 pt-5 text-center text-xs text-slate-400">
           © {new Date().getFullYear()} Faruk Study Manager · Built for consistent learning
         </footer>
