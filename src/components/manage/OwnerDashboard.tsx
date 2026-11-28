@@ -238,7 +238,7 @@ export default function OwnerDashboard({ routine, logs, tasks, subjects, selecte
   ].slice(0, 4), [planTasks, selectedRoutine]);
   const upcoming = useMemo(() => getUpcomingRoutine(routine, clock, today), [clock, routine, today]);
 
-  const subjectProgress = useMemo(() => {
+  const subjectStudyTimes = useMemo(() => {
     const totals = new Map<string, number>();
     for (const log of logs) {
       const minutes = Math.max(0, Number(log.actual_minutes) || 0);
@@ -246,17 +246,11 @@ export default function OwnerDashboard({ routine, logs, tasks, subjects, selecte
       const label = subjectLabel(subjects, log.subject_id, log.subject_name);
       totals.set(label, (totals.get(label) || 0) + minutes);
     }
-    const totalMinutes = [...totals.values()].reduce((total, minutes) => total + minutes, 0);
     return [...totals.entries()]
-      .map(([name, minutes]) => ({
-        name,
-        minutes,
-        share: totalMinutes > 0 ? Math.round(minutes / totalMinutes * 100) : 0,
-      }))
+      .map(([name, minutes]) => ({ name, minutes }))
       .sort((first, second) => second.minutes - first.minutes || first.name.localeCompare(second.name))
       .slice(0, 4);
   }, [logs, subjects]);
-  const maxSubjectMinutes = Math.max(...subjectProgress.map((item) => item.minutes), 1);
 
   const stats: StatCard[] = [
     { label: "Total Subjects", value: String(subjects.length), detail: subjects.length ? "Live subject list" : "No subjects yet", icon: BookOpen, tone: "subjects" },
@@ -351,14 +345,14 @@ export default function OwnerDashboard({ routine, logs, tasks, subjects, selecte
 
       <section className="planner-bottom-grid">
         <article className="planner-glass-card planner-subject-card">
-          <header className="planner-card-header"><div><p><BookOpen size={18} /> Subject-wise Progress</p><span>Based on actual study time</span></div><Link href="/manage/analytics">View all <ArrowRight size={15} /></Link></header>
-          {subjectProgress.length > 0 ? (
+          <header className="planner-card-header"><div><p><BookOpen size={18} /> Subject-wise Study Time</p><span>Only saved actual study time</span></div><Link href="/manage/analytics">View all <ArrowRight size={15} /></Link></header>
+          {subjectStudyTimes.length > 0 ? (
             <div className="planner-subject-list">
-              {subjectProgress.map((subject, index) => (
+              {subjectStudyTimes.map((subject, index) => (
                 <article key={subject.name} className={`planner-subject-row tone-${index % 4}`}>
                   <span className={`planner-subject-badge tone-${index % 4}`}><BookOpen size={16} /></span>
-                  <div><strong>{subject.name}</strong><i><b style={{ width: `${subject.minutes / maxSubjectMinutes * 100}%` }} /></i></div>
-                  <small aria-label={`${formatMinutes(subject.minutes)} logged`}><b>{subject.share}%</b><span>{formatMinutes(subject.minutes)}</span></small>
+                  <div><strong>{subject.name}</strong><span className="planner-subject-time-label">Saved actual study time</span></div>
+                  <span className="planner-subject-duration" aria-label={`${formatMinutes(subject.minutes)} logged`}>{formatMinutes(subject.minutes)}</span>
                 </article>
               ))}
             </div>
