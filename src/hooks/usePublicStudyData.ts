@@ -14,6 +14,7 @@ const emptyStudyStats: PublicStudyStats = {
   academic_minutes: 0,
   duet_department_minutes: 0,
   duet_non_department_minutes: 0,
+  total_minutes: 0,
 };
 
 export function usePublicStudyData() {

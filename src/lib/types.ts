@@ -6,6 +6,8 @@ export type PublicStudyStats = {
   academic_minutes: number;
   duet_department_minutes: number;
   duet_non_department_minutes: number;
+  /** Total actual minutes across every saved study log, including legacy logs without a track. */
+  total_minutes: number;
 };
 
 export type Subject = {

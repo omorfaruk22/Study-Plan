@@ -9,12 +9,11 @@ import {
   CalendarClock,
   CalendarDays,
   Check,
-  CheckCircle2,
   ChevronDown,
   ChevronRight,
   CirclePlay,
   Clock3,
-  Flame,
+  GraduationCap,
   NotebookPen,
   Plus,
   Settings,
@@ -27,6 +26,7 @@ import DailyGoalsPanel from "@/components/manage/DailyGoalsPanel";
 import ReviewReminderPanel from "@/components/manage/ReviewReminderPanel";
 import { formatMinutes, subjectLabel } from "@/components/manage/analytics/chart-utils";
 import { addDaysToDateKey, formatTimeRange, getDhakaDateKey, getDhakaRoutineClock, getDhakaWeekdayForDateKey, routineMatchesDay, routineTimeToMinutes, type DhakaRoutineClock } from "@/lib/routine-time";
+import { resolveStudyTrack } from "@/lib/study-track";
 import type { OwnerWorkspaceData, RoutineItem, StudyLog, StudyTask } from "@/lib/types";
 
 type OwnerDashboardProps = OwnerWorkspaceData & {
@@ -56,18 +56,6 @@ function isTaskDone(task: StudyTask) {
 
 function dateFromKey(value: string) {
   return new Date(`${value}T12:00:00Z`);
-}
-
-function dayStreak(logs: StudyLog[], today: string) {
-  if (!today) return 0;
-  const studiedDays = new Set(logs.filter((log) => Number(log.actual_minutes) > 0).map((log) => log.study_date));
-  let streak = 0;
-  let cursor = today;
-  while (studiedDays.has(cursor)) {
-    streak += 1;
-    cursor = addDaysToDateKey(cursor, -1);
-  }
-  return streak;
 }
 
 function greeting(minutes: number) {
@@ -229,12 +217,21 @@ export default function OwnerDashboard({ routine, logs, tasks, subjects, selecte
   }, []);
 
   const welcomeGreeting = clock ? greeting(clock.minutes) : { lead: "Welcome", accent: "back!" };
-  const completedTaskCount = tasks.filter(isTaskDone).length;
   const progress = taskProgress(tasks);
   const studyToday = logs
     .filter((log) => Boolean(today) && log.study_date === today)
     .reduce((total, log) => total + Math.max(0, Number(log.actual_minutes) || 0), 0);
-  const streak = dayStreak(logs, today);
+  const savedStudyTotals = useMemo(() => {
+    const totals = { academic: 0, duet: 0, total: 0 };
+    for (const log of logs) {
+      const minutes = Math.max(0, Number(log.actual_minutes) || 0);
+      totals.total += minutes;
+      const track = resolveStudyTrack(log, subjects);
+      if (track === "academic") totals.academic += minutes;
+      if (track === "duet_department" || track === "duet_non_department") totals.duet += minutes;
+    }
+    return totals;
+  }, [logs, subjects]);
   const studySeries = useMemo(() => buildStudySeries(logs, today, chartDays), [chartDays, logs, today]);
   const planTasks = useMemo(() => tasks.filter((task) => task.due_date === selectedDate), [selectedDate, tasks]);
   const selectedRoutine = useMemo(() => getRoutineForDate(routine, selectedDate), [routine, selectedDate]);
@@ -266,9 +263,9 @@ export default function OwnerDashboard({ routine, logs, tasks, subjects, selecte
 
   const stats: StatCard[] = [
     { label: "Total Subjects", value: String(subjects.length), detail: subjects.length ? "Live subject list" : "No subjects yet", icon: BookOpen, tone: "subjects" },
-    { label: "Study Time Today", value: formatMinutes(studyToday), detail: studyToday > 0 ? (today ? dateLabel(today, { weekday: "short", day: "numeric", month: "short" }) : "Loading date…") : "No saved session today", icon: Clock3, tone: "time" },
-    { label: "Overall Progress", value: progress === null ? "—" : `${progress}%`, detail: tasks.length ? `${completedTaskCount}/${tasks.length} task completed` : "No task data", icon: CheckCircle2, tone: "progress" },
-    { label: "Day Streak", value: `${streak}`, detail: streak === 1 ? "day with study logs" : "days with study logs", icon: Flame, tone: "streak" },
+    { label: "Academic Study", value: formatMinutes(savedStudyTotals.academic), detail: savedStudyTotals.academic ? "All saved academic logs" : "No saved academic session", icon: NotebookPen, tone: "time" },
+    { label: "DUET Study", value: formatMinutes(savedStudyTotals.duet), detail: savedStudyTotals.duet ? "Department + Non-Department" : "No saved DUET session", icon: GraduationCap, tone: "progress" },
+    { label: "Total Study Time", value: formatMinutes(savedStudyTotals.total), detail: studyToday > 0 ? `Today: ${formatMinutes(studyToday)}` : "All saved study logs", icon: Clock3, tone: "streak" },
   ];
 
   return (

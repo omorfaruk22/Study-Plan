@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import { isOwner } from "@/lib/auth-guard";
 import { getDb } from "@/lib/mongodb";
+import { withResolvedStudyTrack } from "@/lib/study-track";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-function serialize(doc: Record<string, unknown>) {
+function serialize(doc: Record<string, unknown>): Record<string, unknown> & { id: string } {
   const { _id, ...rest } = doc;
   return { ...rest, id: String(_id) };
 }
@@ -25,7 +26,18 @@ export async function GET() {
       db.collection("study_tasks").find({}).sort({ due_date: 1, createdAt: -1 }).toArray(),
       subjectCollection.find({}).sort({ category: 1, name: 1 }).toArray()
     ]);
-    return NextResponse.json({ routine: routine.map(serialize), logs: logs.map(serialize), tasks: tasks.map(serialize), subjects: subjects.map(serialize) });
+    const serializedSubjects = subjects.map(serialize);
+    const serializedLogs = logs.map(serialize).map((log) => withResolvedStudyTrack(log, serializedSubjects));
+
+    return NextResponse.json({
+      routine: routine.map(serialize),
+      // Legacy logs can lack study_track even though their linked subject
+      // identifies the section. Add that display-only value here without
+      // modifying the original MongoDB record.
+      logs: serializedLogs,
+      tasks: tasks.map(serialize),
+      subjects: serializedSubjects,
+    });
   } catch (error) {
     console.error("Owner bootstrap failed:", error);
     return NextResponse.json({ error: "MongoDB সংযোগ পাওয়া যাচ্ছে না। .env.local-এর MONGODB_URI, Atlas cluster Active আছে কি না, এবং Atlas Network Access-এ আপনার IP অনুমোদিত কি না পরীক্ষা করো।" }, { status: 503 });
