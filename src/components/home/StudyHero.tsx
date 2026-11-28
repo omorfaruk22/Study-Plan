@@ -1,29 +1,26 @@
 import Link from "next/link";
-import { ArrowRight, Eye, Sparkles } from "lucide-react";
+import { ArrowRight, BookOpenCheck, Sparkles } from "lucide-react";
 
 export default function StudyHero() {
   return (
-    <section className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-green-950 via-green-800 to-green-700 px-7 py-10 text-white shadow-xl shadow-green-900/10 animate-rise md:px-12 md:py-14">
-      <div className="absolute -right-12 -top-20 h-72 w-72 rounded-full border-[38px] border-white/5" />
-      <div className="absolute bottom-[-90px] right-[20%] h-52 w-52 rounded-full bg-lime-300/10 blur-2xl" />
-
-      <div className="relative max-w-2xl">
-        <span className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs text-green-100">
-          <Sparkles size={14} /> Personal Study Manager
-        </span>
-        <h1 className="text-3xl font-black leading-tight tracking-tight md:text-5xl">
+    <section className="public-hero" aria-labelledby="public-hero-title">
+      <div className="public-hero-image" aria-hidden="true" />
+      <div className="public-hero-rings" aria-hidden="true"><i /><i /></div>
+      <div className="public-hero-content">
+        <p className="public-hero-kicker"><Sparkles size={16} /> Your Personal Study Planner</p>
+        <h1 id="public-hero-title">
           আমার পড়াশোনা,<br />
-          <span className="text-lime-300">আমার পরিকল্পনায়।</span>
+          <em>আমার পরিকল্পনায়!</em>
         </h1>
-        <p className="mt-4 max-w-xl text-sm leading-7 text-green-100 md:text-base">
-          একাডেমিক পড়া ও DUET Department এবং Non-Department প্রস্তুতি—সবকিছু এক জায়গায় গুছিয়ে রাখার ব্যক্তিগত স্টাডি স্পেস।
+        <p className="public-hero-description">
+          নিজের পড়াশোনাকে করুন আরও সংগঠিত, আরও কার্যকর এবং আরও লক্ষ্যভিত্তিক।
         </p>
-        <div className="mt-7 flex flex-wrap gap-3">
-          <Link href="/login" className="btn bg-lime-300 text-green-950 hover:bg-lime-200">
-            নিজের পড়া ম্যানেজ করো <ArrowRight size={17} />
+        <div className="public-hero-actions">
+          <Link href="#routine" className="public-hero-primary">
+            <BookOpenCheck size={18} /> আজকের রুটিন দেখুন <ArrowRight size={16} />
           </Link>
-          <a href="#routine" className="btn border border-white/25 bg-white/10 text-white hover:bg-white/15">
-            <Eye size={17} /> রুটিন দেখো
+          <a href="#about" className="public-hero-secondary">
+            বিস্তারিত জানুন
           </a>
         </div>
       </div>

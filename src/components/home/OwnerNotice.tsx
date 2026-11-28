@@ -1,4 +1,4 @@
-import { LockKeyhole } from "lucide-react";
+import { LockKeyhole, Quote, ShieldCheck } from "lucide-react";
 
 type OwnerNoticeProps = {
   dataUnavailable: boolean;
@@ -6,19 +6,21 @@ type OwnerNoticeProps = {
 
 export default function OwnerNotice({ dataUnavailable }: OwnerNoticeProps) {
   return (
-    <section className="mt-12 rounded-2xl border border-green-100 bg-white p-6 text-center">
-      <span className="mx-auto grid h-11 w-11 place-items-center rounded-full bg-green-50 text-green-700">
-        <LockKeyhole size={20} />
-      </span>
-      <h2 className="mt-3 font-bold text-green-950">শুধু মালিকের জন্য Edit Access</h2>
-      <p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-slate-500">
-        Visitor-রা প্রকাশিত রুটিন, বিষয় এবং মোট পড়ার পরিসংখ্যান দেখতে পারবে। বিস্তারিত পড়ার লগ, নোট, পরীক্ষা এবং ম্যানেজমেন্ট প্যানেল শুধু অনুমোদিত মালিকের জন্য সংরক্ষিত।
-      </p>
-      {dataUnavailable && (
-        <p className="mt-3 text-xs text-amber-700">
-          Live study data এখন পাওয়া যাচ্ছে না, তাই কোনো নমুনা রুটিন দেখানো হচ্ছে না।
-        </p>
-      )}
+    <section id="about" className="public-about-section" aria-labelledby="public-about-title">
+      <div className="public-quote-card">
+        <Quote size={31} />
+        <blockquote>“নিয়মিত পড়াই<br /><strong>সাফল্যের চাবিকাঠি।”</strong></blockquote>
+        <span>– StudyPlan</span>
+      </div>
+      <div className="public-owner-card">
+        <span><LockKeyhole size={22} /></span>
+        <div>
+          <p><ShieldCheck size={14} /> Private study space</p>
+          <h2 id="public-about-title">শুধু মালিকের জন্য Edit Access</h2>
+          <div>Visitor-রা প্রকাশিত রুটিন, বিষয় এবং মোট পড়ার পরিসংখ্যান দেখতে পারবে। বিস্তারিত পড়ার লগ, নোট, পরীক্ষা এবং ম্যানেজমেন্ট প্যানেল শুধু অনুমোদিত মালিকের জন্য সংরক্ষিত।</div>
+          {dataUnavailable && <small>Live study data এখন পাওয়া যাচ্ছে না, তাই কোনো নমুনা রুটিন দেখানো হচ্ছে না।</small>}
+        </div>
+      </div>
     </section>
   );
 }

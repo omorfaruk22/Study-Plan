@@ -2,20 +2,40 @@
 
 import Link from "next/link";
 import { useTransition } from "react";
-import { LayoutDashboard, LogIn, LogOut } from "lucide-react";
+import { CalendarDays, CircleHelp, House, LayoutDashboard, LogIn, LogOut } from "lucide-react";
 import { logoutAction } from "@/app/actions";
 
 type SiteNavigationProps = {
   owner?: boolean;
+  publicMode?: boolean;
 };
 
-export default function SiteNavigation({ owner = false }: SiteNavigationProps) {
+export default function SiteNavigation({ owner = false, publicMode = false }: SiteNavigationProps) {
   const [pending, startTransition] = useTransition();
 
   function logOut() {
     startTransition(() => {
       void logoutAction();
     });
+  }
+
+  if (publicMode) {
+    return (
+      <nav aria-label="Public navigation" className="public-navigation">
+        <Link href="/" className="public-nav-link" aria-label="হোম">
+          <House size={16} /> <span>হোম</span>
+        </Link>
+        <Link href="/#routine" className="public-nav-link">
+          <CalendarDays size={16} /> <span>Daily Routine</span>
+        </Link>
+        <a href="#about" className="public-nav-link">
+          <CircleHelp size={16} /> <span>About</span>
+        </a>
+        <Link href="/login" className="public-owner-login">
+          <LogIn size={16} /> <span>Owner Login</span>
+        </Link>
+      </nav>
+    );
   }
 
   return (

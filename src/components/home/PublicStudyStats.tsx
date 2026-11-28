@@ -1,41 +1,92 @@
-import { BookOpen, GraduationCap, LibraryBig } from "lucide-react";
+"use client";
+
+import { useEffect, useState } from "react";
+import { BookOpen, CalendarDays, Clock3, LibraryBig, type LucideIcon } from "lucide-react";
 import type { PublicStudyStats as StudyStats } from "@/lib/types";
 
 type PublicStudyStatsProps = {
   stats: StudyStats;
+  subjectCount: number;
+  routineCount: number;
   loading: boolean;
   dataUnavailable: boolean;
 };
 
+type MetricType = "count" | "minutes";
+
+type Metric = {
+  label: string;
+  detail: string;
+  value: number;
+  type: MetricType;
+  icon: LucideIcon;
+  tone: string;
+};
+
 function formatDuration(totalMinutes: number) {
-  return `${(Math.max(0, totalMinutes) / 60).toFixed(1)} ঘণ্টা`;
+  const minutes = Math.max(0, Math.round(totalMinutes));
+  const hours = Math.floor(minutes / 60);
+  const remainder = minutes % 60;
+  if (hours > 0) return `${hours}h${remainder ? ` ${remainder}m` : ""}`;
+  return `${remainder}m`;
 }
 
-export default function PublicStudyStats({ stats, loading, dataUnavailable }: PublicStudyStatsProps) {
-  const items = [
-    { label: "একাডেমিক", minutes: stats.academic_minutes, icon: BookOpen, color: "bg-green-100 text-green-800" },
-    { label: "DUET Department", minutes: stats.duet_department_minutes, icon: GraduationCap, color: "bg-lime-100 text-lime-800" },
-    { label: "DUET Non-Department", minutes: stats.duet_non_department_minutes, icon: LibraryBig, color: "bg-emerald-100 text-emerald-800" },
+function useAnimatedValue(target: number, enabled: boolean) {
+  const [value, setValue] = useState(0);
+
+  useEffect(() => {
+    if (!enabled) {
+      setValue(0);
+      return;
+    }
+
+    const safeTarget = Math.max(0, Math.round(target));
+    const startedAt = performance.now();
+    const duration = Math.min(1_000, 380 + Math.sqrt(safeTarget + 1) * 45);
+    let frameId = 0;
+    const update = (timestamp: number) => {
+      const progress = Math.min(1, (timestamp - startedAt) / duration);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setValue(Math.round(safeTarget * eased));
+      if (progress < 1) frameId = window.requestAnimationFrame(update);
+    };
+
+    frameId = window.requestAnimationFrame(update);
+    return () => window.cancelAnimationFrame(frameId);
+  }, [enabled, target]);
+
+  return value;
+}
+
+function AnimatedMetricValue({ value, type, loading, dataUnavailable }: { value: number; type: MetricType; loading: boolean; dataUnavailable: boolean }) {
+  const animatedValue = useAnimatedValue(value, !loading && !dataUnavailable);
+  if (loading) return <span className="public-metric-skeleton" aria-label="Loading live data" />;
+  if (dataUnavailable) return <>—</>;
+  return <>{type === "minutes" ? formatDuration(animatedValue) : animatedValue.toLocaleString("en-US")}</>;
+}
+
+export default function PublicStudyStats({ stats, subjectCount, routineCount, loading, dataUnavailable }: PublicStudyStatsProps) {
+  const totalMinutes = stats.academic_minutes + stats.duet_department_minutes + stats.duet_non_department_minutes;
+  const items: Metric[] = [
+    { label: "বিষয় সমূহ", detail: "প্রকাশিত বিষয়", value: subjectCount, type: "count", icon: BookOpen, tone: "subjects" },
+    { label: "সাপ্তাহিক রুটিন", detail: "লাইভ সময়সূচি", value: routineCount, type: "count", icon: CalendarDays, tone: "routine" },
+    { label: "একাডেমিক পড়া", detail: "সেভ করা সময়", value: stats.academic_minutes, type: "minutes", icon: LibraryBig, tone: "academic" },
+    { label: "মোট পড়ার সময়", detail: "সব track মিলিয়ে", value: totalMinutes, type: "minutes", icon: Clock3, tone: "time" },
   ];
 
   return (
-    <aside aria-label="সর্বজনীন পড়ার পরিসংখ্যান" className="card flex flex-col p-3.5 sm:p-5 lg:p-6">
-      <div>
-        <p className="text-[11px] font-extrabold uppercase tracking-[.16em] text-green-700">Public study stats</p>
-        <h2 className="mt-1 text-lg font-black text-green-950">মোট পড়ার সময়</h2>
-        <p className="mt-1 text-xs leading-5 text-slate-500">সবাই এখান থেকে পড়ার অগ্রগতি দেখতে পারবে।</p>
-      </div>
-      <div className="mt-3 grid grid-cols-1 gap-2 sm:mt-4 sm:grid-cols-3 lg:grid-cols-1">
-        {items.map(({ label, minutes, icon: Icon, color }) => (
-          <article key={label} className="flex min-w-0 items-center gap-3 rounded-xl border border-green-50 bg-green-50/50 p-3">
-            <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg sm:h-9 sm:w-9 ${color}`}><Icon size={16} /></span>
-            <div className="min-w-0">
-              <p className="break-words text-[11px] font-semibold text-slate-500">{label}</p>
-              <p className="text-xs font-extrabold text-green-950 sm:text-sm">{loading ? "লোড হচ্ছে…" : dataUnavailable ? "তথ্য পাওয়া যাচ্ছে না" : formatDuration(minutes)}</p>
-            </div>
-          </article>
-        ))}
-      </div>
-    </aside>
+    <section aria-label="লাইভ পড়াশোনার সারসংক্ষেপ" className="public-metric-grid">
+      {items.map(({ label, detail, value, type, icon: Icon, tone }) => (
+        <article key={label} className={`public-metric-card tone-${tone}`}>
+          <span className="public-metric-icon"><Icon size={23} /></span>
+          <div>
+            <strong><AnimatedMetricValue value={value} type={type} loading={loading} dataUnavailable={dataUnavailable} /></strong>
+            <p>{label}</p>
+            <small>{dataUnavailable ? "Live data unavailable" : detail}</small>
+          </div>
+          <i aria-hidden="true" />
+        </article>
+      ))}
+    </section>
   );
 }
